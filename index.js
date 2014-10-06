@@ -5,6 +5,7 @@ var moduleName = 'bus-client';
 var zogLog    = require ('xcraft-core-log') (moduleName);
 var axon      = require ('axon');
 var async     = require ('async');
+var shellExt  = require ('./shellExt.js');
 
 
 var zogConfig             = {};
@@ -12,6 +13,7 @@ var subscriptions         = axon.socket ('sub');
 var commands              = axon.socket ('push');
 var eventsHandlerRegistry = {};
 var token                 = 'invalid';
+
 
 
 subscriptions.subscribe ('heartbeat');
@@ -31,6 +33,14 @@ subscriptions.on ('message', function (topic, msg) {
     zogLog.verb ('invalid token, event discarded');
   }
 });
+
+exports.shellExt = function (settings) {
+  settings.commands = {
+    todo: 'export bus commands'
+  };
+
+  return shellExt(settings);
+};
 
 exports.configure = function (config) {
   zogConfig = config;
