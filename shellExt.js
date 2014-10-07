@@ -6,6 +6,15 @@ module.exports = function() {
   var settings = {};
 
   route = function(req, res, next) {
+    var commander = require ('xcraft-core-bus').getCommander();
+    var registry  = commander.getCommandsRegistry ();
+
+    Object.keys (registry).forEach (function (action) {
+      req.shell.cmd (action, registry[action].desc, function (req, res, next) {
+        return res.prompt();
+      });
+    });
+
     var app;
     app = req.shell;
 
