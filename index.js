@@ -6,9 +6,9 @@ var zogLog    = require ('xcraft-core-log') (moduleName);
 var axon      = require ('axon');
 var async     = require ('async');
 var shellExt  = require ('./shellExt.js');
+var busConfig = require ('xcraft-core-etc').load ('xcraft-core-bus');
 
 
-var zogConfig             = {};
 var subscriptions         = axon.socket ('sub');
 var commands              = axon.socket ('push');
 var eventsHandlerRegistry = {};
@@ -42,10 +42,6 @@ exports.shellExt = function (settings) {
   return shellExt(settings);
 };
 
-exports.configure = function (config) {
-  zogConfig = config;
-};
-
 
 exports.connect = function (busToken, callbackDone) {
   /* Save bus token for checking. */
@@ -70,8 +66,8 @@ exports.connect = function (busToken, callbackDone) {
     callbackDone (!err);
   });
 
-  subscriptions.connect (parseInt (zogConfig.bus.notifierPort), zogConfig.bus.host);
-  commands.connect (parseInt (zogConfig.bus.commanderPort), zogConfig.bus.host);
+  subscriptions.connect (parseInt (busConfig.notifierPort), busConfig.host);
+  commands.connect (parseInt (busConfig.commanderPort), busConfig.host);
 };
 
 exports.getToken = function () {
