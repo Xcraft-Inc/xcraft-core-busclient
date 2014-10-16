@@ -26,7 +26,7 @@ subscriptions.on ('message', function (topic, msg) {
                topic,
                JSON.stringify (msg));
 
-  if (msg.token === token) {
+  if (msg.token === token || topic === 'connected') {
     eventsHandlerRegistry[topic] (msg);
   } else {
     zogLog.verb ('invalid token, event discarded');
@@ -35,8 +35,6 @@ subscriptions.on ('message', function (topic, msg) {
 
 exports.connect = function (busToken, callbackDone) {
   /* Save bus token for checking. */
-  token = busToken;
-
   async.parallel (
   [
     function (done) {
@@ -52,8 +50,20 @@ exports.connect = function (busToken, callbackDone) {
       });
     }
   ], function (err) {
-    zogLog.verb ('Connected with token: ' + token);
-    callbackDone (!err);
+    //TODO: Explain auto-connect mecha
+    if (!busToken) {
+      eventsHandlerRegistry.connected = function (msg) {
+        token = msg.data;
+        zogLog.verb ('Connected with token: ' + token);
+        callbackDone (!err);
+      };
+      subscriptions.subscribe ('connected');
+      exports.command.send ('autoconnect');
+    } else {
+      token = busToken;
+      zogLog.verb ('Connected with token: ' + token);
+      callbackDone (!err);
+    }
   });
 
   subscriptions.connect (parseInt (busConfig.notifierPort), busConfig.host);
