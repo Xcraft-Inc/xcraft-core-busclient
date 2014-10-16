@@ -11,6 +11,7 @@ var busConfig = require ('xcraft-core-etc').load ('xcraft-core-bus');
 var subscriptions         = axon.socket ('sub');
 var commands              = axon.socket ('push');
 var eventsHandlerRegistry = {};
+var commandsRegistry      = {};
 var token                 = 'invalid';
 
 
@@ -53,7 +54,8 @@ exports.connect = function (busToken, callbackDone) {
     //TODO: Explain auto-connect mecha
     if (!busToken) {
       eventsHandlerRegistry.connected = function (msg) {
-        token = msg.data;
+        token            = msg.data.token;
+        commandsRegistry = msg.data.cmdRegistry;
         zogLog.verb ('Connected with token: ' + token);
         callbackDone (!err);
       };
@@ -72,6 +74,10 @@ exports.connect = function (busToken, callbackDone) {
 
 exports.getToken = function () {
   return token;
+};
+
+exports.getCommandsRegistry = function () {
+  return commandsRegistry;
 };
 
 exports.events = {
