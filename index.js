@@ -2,9 +2,10 @@
 
 var moduleName = 'bus-client';
 
-var zogLog    = require ('xcraft-core-log') (moduleName);
-var axon      = require ('axon');
-var async     = require ('async');
+var axon  = require ('axon');
+var async = require ('async');
+
+var xLog      = require ('xcraft-core-log') (moduleName);
 var busConfig = require ('xcraft-core-etc').load ('xcraft-core-bus');
 
 
@@ -15,7 +16,6 @@ var commandsRegistry      = {};
 var token                 = 'invalid';
 
 
-
 subscriptions.subscribe ('heartbeat');
 
 subscriptions.on ('message', function (topic, msg) {
@@ -23,14 +23,14 @@ subscriptions.on ('message', function (topic, msg) {
     return;
   }
 
-  zogLog.verb ('notification received: %s -> data:%s',
+  xLog.verb ('notification received: %s -> data:%s',
                topic,
                JSON.stringify (msg));
 
   if (msg.token === token || topic === 'connected') {
     eventsHandlerRegistry[topic] (msg);
   } else {
-    zogLog.verb ('invalid token, event discarded');
+    xLog.verb ('invalid token, event discarded');
   }
 });
 
@@ -40,13 +40,13 @@ exports.connect = function (busToken, callbackDone) {
   [
     function (done) {
       subscriptions.on ('connect', function (err) { /* jshint ignore:line */
-        zogLog.verb ('Bus client subscribed to notifications bus');
+        xLog.verb ('Bus client subscribed to notifications bus');
         done ();
       });
     },
     function (done) {
       commands.on ('connect', function (err) { /* jshint ignore:line */
-        zogLog.verb ('Bus client ready to send on command bus');
+        xLog.verb ('Bus client ready to send on command bus');
         done ();
       });
     }
@@ -56,14 +56,14 @@ exports.connect = function (busToken, callbackDone) {
       eventsHandlerRegistry.connected = function (msg) {
         token            = msg.data.token;
         commandsRegistry = msg.data.cmdRegistry;
-        zogLog.verb ('Connected with token: ' + token);
+        xLog.verb ('Connected with token: ' + token);
         callbackDone (!err);
       };
       subscriptions.subscribe ('connected');
       exports.command.send ('autoconnect');
     } else {
       token = busToken;
-      zogLog.verb ('Connected with token: ' + token);
+      xLog.verb ('Connected with token: ' + token);
       callbackDone (!err);
     }
   });
@@ -82,7 +82,7 @@ exports.getCommandsRegistry = function () {
 
 exports.events = {
   subscribe: function (topic, handler) {
-    zogLog.verb ('client added handler to topic: ' + topic);
+    xLog.verb ('client added handler to topic: ' + topic);
 
     subscriptions.subscribe (topic);
 
@@ -127,7 +127,7 @@ exports.events = {
 
     notifier.send (topic, busMessage);
 
-    zogLog.verb ('client send notification on topic:' + topic);
+    xLog.verb ('client send notification on topic:' + topic);
   }
 };
 
@@ -139,7 +139,7 @@ exports.command = {
       subscriptions.subscribe (finishTopic);
       eventsHandlerRegistry[finishTopic] = finishHandler;
 
-      zogLog.verb ('finish handler registered for cmd: ' + cmd);
+      xLog.verb ('finish handler registered for cmd: ' + cmd);
     }
 
     var busMessage = require ('xcraft-core-bus').newMessage ();
@@ -147,7 +147,7 @@ exports.command = {
     busMessage.data = data;
     commands.send (cmd, busMessage);
 
-    zogLog.verb ('client send \'%s\' command', cmd);
+    xLog.verb ('client send \'%s\' command', cmd);
   }
 };
 
@@ -164,13 +164,13 @@ exports.stop = function (callbackDone) {
       });
     }
   ], function (err) {
-    zogLog.verb ('Stopped');
+    xLog.verb ('Stopped');
     if (callbackDone) {
       callbackDone (!err);
     }
   });
 
-  zogLog.verb ('Stopping...');
+  xLog.verb ('Stopping...');
   subscriptions.close ();
   commands.close ();
 };
