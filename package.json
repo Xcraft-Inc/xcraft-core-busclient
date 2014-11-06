@@ -16,7 +16,8 @@
     "url" : "lib/xcraft-core-busclient"
   },
   "dependencies": {
-    "xcraft-core-etc" : "0.1.0"
+    "xcraft-core-etc" : "0.1.0",
+    "axon": "2.0.x"
   },
   "author": "Mathieu Schroeter & Samuel Loup",
   "license": "ISC",
