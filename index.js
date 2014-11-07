@@ -111,6 +111,13 @@ exports.events = {
     };
   },
 
+  unsubscribe: function (topic) {
+    xLog.verb ('client removed handler on topic: ' + topic);
+
+    subscriptions.unsubscribe (topic);
+    delete eventsHandlerRegistry[topic];
+  },
+
   send: function (topic, data, serialize) {
     var notifier   = require ('xcraft-core-bus').getNotifier ();
     var busMessage = require ('xcraft-core-bus').newMessage ();
