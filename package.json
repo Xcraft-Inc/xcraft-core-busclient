@@ -11,13 +11,13 @@
     "bus",
     "client"
   ],
-  "repository" : {
-    "type" : "file",
-    "url" : "lib/xcraft-core-busclient"
+  "repository": {
+    "type": "file",
+    "url": "lib/xcraft-core-busclient"
   },
   "dependencies": {
-    "xcraft-core-etc" : "0.1.0",
-    "axon": "2.0.x"
+    "axon": "^2.0.1",
+    "xcraft-core-etc": "0.1.0"
   },
   "author": "Mathieu Schroeter & Samuel Loup",
   "license": "ISC",
