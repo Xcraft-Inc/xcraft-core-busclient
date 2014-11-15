@@ -20,6 +20,6 @@
     "xcraft-core-etc": "0.1.0"
   },
   "author": "Mathieu Schroeter & Samuel Loup",
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {}
 }
