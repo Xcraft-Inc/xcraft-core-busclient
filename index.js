@@ -158,7 +158,7 @@ exports.command = {
   }
 };
 
-exports.stop = function (callbackDone) {
+exports.stop = function (callback) {
   async.parallel ([
     function (callback) {
       subscriptions.on ('close', function (err) { /* jshint ignore:line */
@@ -172,8 +172,8 @@ exports.stop = function (callbackDone) {
     }
   ], function (err) {
     xLog.verb ('Stopped');
-    if (callbackDone) {
-      callbackDone (!err);
+    if (callback) {
+      callback (err);
     }
   });
 
