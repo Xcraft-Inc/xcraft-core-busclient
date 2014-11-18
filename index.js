@@ -51,7 +51,7 @@ exports.connect = function (busToken, callback) {
       });
     }
   ], function (err) {
-    //TODO: Explain auto-connect mecha
+    // TODO: Explain auto-connect mecha
     if (!busToken) {
       eventsHandlerRegistry.connected = function (msg) {
         token            = msg.data.token;
