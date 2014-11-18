@@ -38,16 +38,16 @@ exports.connect = function (busToken, callback) {
   /* Save bus token for checking. */
   async.parallel (
   [
-    function (done) {
+    function (callback) {
       subscriptions.on ('connect', function (err) { /* jshint ignore:line */
         xLog.verb ('Bus client subscribed to notifications bus');
-        done ();
+        callback ();
       });
     },
-    function (done) {
+    function (callback) {
       commands.on ('connect', function (err) { /* jshint ignore:line */
         xLog.verb ('Bus client ready to send on command bus');
-        done ();
+        callback ();
       });
     }
   ], function (err) {
