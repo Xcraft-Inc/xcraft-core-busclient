@@ -34,7 +34,7 @@ subscriptions.on ('message', function (topic, msg) {
   }
 });
 
-exports.connect = function (busToken, callbackDone) {
+exports.connect = function (busToken, callback) {
   /* Save bus token for checking. */
   async.parallel (
   [
@@ -57,14 +57,14 @@ exports.connect = function (busToken, callbackDone) {
         token            = msg.data.token;
         commandsRegistry = msg.data.cmdRegistry;
         xLog.verb ('Connected with token: ' + token);
-        callbackDone (!err);
+        callback (err);
       };
       subscriptions.subscribe ('connected');
       exports.command.send ('autoconnect');
     } else {
       token = busToken;
       xLog.verb ('Connected with token: ' + token);
-      callbackDone (!err);
+      callback (err);
     }
   });
 
