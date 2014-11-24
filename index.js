@@ -39,15 +39,15 @@ exports.connect = function (busToken, callback) {
   async.parallel (
   [
     function (callback) {
-      subscriptions.on ('connect', function (err) { /* jshint ignore:line */
+      subscriptions.on ('connect', function (err) {
         xLog.verb ('Bus client subscribed to notifications bus');
-        callback ();
+        callback (err);
       });
     },
     function (callback) {
-      commands.on ('connect', function (err) { /* jshint ignore:line */
+      commands.on ('connect', function (err) {
         xLog.verb ('Bus client ready to send on command bus');
-        callback ();
+        callback (err);
       });
     }
   ], function (err) {
@@ -161,13 +161,13 @@ exports.command = {
 exports.stop = function (callback) {
   async.parallel ([
     function (callback) {
-      subscriptions.on ('close', function (err) { /* jshint ignore:line */
-        callback ();
+      subscriptions.on ('close', function (err) {
+        callback (err);
       });
     },
     function (callback) {
-      commands.on ('close', function (err) { /* jshint ignore:line */
-        callback ();
+      commands.on ('close', function (err) {
+        callback (err);
       });
     }
   ], function (err) {
