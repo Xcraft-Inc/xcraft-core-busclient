@@ -15,6 +15,25 @@ var eventsHandlerRegistry = {};
 var commandsRegistry      = {};
 var token                 = 'invalid';
 
+var persistEvent = function (topic, msg) {
+  /* Note about EventStore and 'connected' topic */
+  /* we discard connected message for two reason: */
+  /* 1. eventstore don't support field name containing '.' */
+  /* 2. this topic annonce all commands, and has no business value */
+  if (msg && topic !== 'connected') {
+    eventStore.insert (msg.token, topic, msg.data, function (err) {
+      if (err) {
+        xLog.err (err);
+      }
+    });
+  } else {
+    eventStore.insert (msg.token, topic, null , function (err) {
+      if (err) {
+        xLog.err (err);
+      }
+    });
+  }
+};
 
 subscriptions.subscribe ('heartbeat');
 
@@ -29,24 +48,7 @@ subscriptions.on ('message', function (topic, msg) {
 
   if (msg.token === token || topic === 'connected') {
     eventsHandlerRegistry[topic] (msg);
-
-    /* Note about EventStore and 'connected' topic */
-    /* we discard connected message for two reason: */
-    /* 1. eventstore don't support field name containing '.' */
-    /* 2. this topic annonce all commands, and has no business value */
-    if (msg && topic !== 'connected') {
-      eventStore.insert (msg.token, topic, msg.data, function (err) {
-        if (err) {
-          xLog.err (err);
-        }
-      });
-    } else {
-      eventStore.insert (msg.token, topic, null , function (err) {
-        if (err) {
-          xLog.err (err);
-        }
-      });
-    }
+    persistEvent (topic, msg);
   } else {
     xLog.verb ('invalid token, event discarded');
   }
