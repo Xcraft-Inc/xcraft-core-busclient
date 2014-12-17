@@ -5,9 +5,9 @@ var moduleName = 'bus-client';
 var axon  = require ('axon');
 var async = require ('async');
 
-var xLog      = require ('xcraft-core-log') (moduleName);
-var busConfig = require ('xcraft-core-etc').load ('xcraft-core-bus');
-
+var xLog       = require ('xcraft-core-log') (moduleName);
+var busConfig  = require ('xcraft-core-etc').load ('xcraft-core-bus');
+var eventStore = require ('xcraft-core-eventstore').getInstance ();
 
 var subscriptions         = axon.socket ('sub');
 var commands              = axon.socket ('push');
@@ -29,6 +29,24 @@ subscriptions.on ('message', function (topic, msg) {
 
   if (msg.token === token || topic === 'connected') {
     eventsHandlerRegistry[topic] (msg);
+    
+    /* Note about EventStore and 'connected' topic */
+    /* we discard connected message for two reason: */
+    /* 1. eventstore don't support field name containing '.' */
+    /* 2. this topic annonce all commands, and has no business value */
+    if (msg && topic !== 'connected') {
+      eventStore.insert (topic, msg.data, function (err) {
+        if (err) {
+          xLog.err (err);
+        }
+      });
+    } else {
+      eventStore.insert (topic, null , function (err) {
+        if (err) {
+          xLog.err (err);
+        }
+      });
+    }
   } else {
     xLog.verb ('invalid token, event discarded');
   }
@@ -38,6 +56,11 @@ exports.connect = function (busToken, callback) {
   /* Save bus token for checking. */
   async.parallel (
   [
+    function (callback) {
+      eventStore.use (function (err) {
+        callback (err);
+      });
+    },
     function (callback) {
       subscriptions.on ('connect', function (err) {
         xLog.verb ('Bus client subscribed to notifications bus');
