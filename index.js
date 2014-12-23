@@ -7,7 +7,6 @@ var async = require ('async');
 
 var xLog       = require ('xcraft-core-log') (moduleName);
 var busConfig  = require ('xcraft-core-etc').load ('xcraft-core-bus');
-var eventStore = require ('xcraft-core-eventstore');
 
 var subscriptions         = axon.socket ('sub');
 var commands              = axon.socket ('push');
@@ -28,7 +27,6 @@ subscriptions.on ('message', function (topic, msg) {
 
   if (msg.token === token || topic === 'connected') {
     eventsHandlerRegistry[topic] (msg);
-    eventStore.persist (topic, msg);
   } else {
     xLog.verb ('invalid token, event discarded');
   }
@@ -38,11 +36,6 @@ exports.connect = function (busToken, callback) {
   /* Save bus token for checking. */
   async.parallel (
   [
-    function (callback) {
-      eventStore.getInstance ().use (function (err) {
-        callback (err);
-      });
-    },
     function (callback) {
       subscriptions.on ('connect', function (err) {
         xLog.verb ('Bus client subscribed to notifications bus');
