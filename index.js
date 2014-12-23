@@ -14,7 +14,7 @@ var eventsHandlerRegistry = {};
 var commandsRegistry      = {};
 var token                 = 'invalid';
 
-subscriptions.subscribe ('heartbeat');
+subscriptions.subscribe ('*');
 
 subscriptions.on ('message', function (topic, msg) {
   if (!eventsHandlerRegistry.hasOwnProperty (topic)) {
@@ -77,6 +77,8 @@ exports.getToken = function () {
 exports.getCommandsRegistry = function () {
   return commandsRegistry;
 };
+
+exports.subscriptions = subscriptions;
 
 exports.events = {
   subscribe: function (topic, handler) {
