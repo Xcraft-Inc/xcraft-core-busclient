@@ -162,14 +162,10 @@ exports.command = {
 exports.stop = function (callback) {
   async.parallel ([
     function (callback) {
-      subscriptions.on ('close', function (err) {
-        callback (err);
-      });
+      subscriptions.on ('close', callback);
     },
     function (callback) {
-      commands.on ('close', function (err) {
-        callback (err);
-      });
+      commands.on ('close', callback);
     }
   ], function (err) {
     xLog.verb ('Stopped');
