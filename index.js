@@ -7,6 +7,7 @@ var async = require ('async');
 
 var xLog       = require ('xcraft-core-log') (moduleName);
 var busConfig  = require ('xcraft-core-etc').load ('xcraft-core-bus');
+var xBus       = require ('xcraft-core-bus');
 
 var subscriptions         = axon.socket ('sub');
 var commands              = axon.socket ('push');
@@ -119,8 +120,8 @@ exports.events = {
   },
 
   send: function (topic, data, serialize) {
-    var notifier   = require ('xcraft-core-bus').getNotifier ();
-    var busMessage = require ('xcraft-core-bus').newMessage ();
+    var notifier   = xBus.getNotifier ();
+    var busMessage = xBus.newMessage ();
 
     if (serialize) {
       busMessage.data = JSON.stringify (data, function (key, value) {
@@ -149,7 +150,7 @@ exports.command = {
       xLog.verb ('finish handler registered for cmd: ' + cmd);
     }
 
-    var busMessage = require ('xcraft-core-bus').newMessage ();
+    var busMessage = xBus.newMessage ();
 
     busMessage.data = data;
     commands.send (cmd, busMessage);
