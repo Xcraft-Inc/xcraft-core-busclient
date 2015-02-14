@@ -35,8 +35,7 @@ subscriptions.on ('message', function (topic, msg) {
 
 exports.connect = function (busToken, callback) {
   /* Save bus token for checking. */
-  async.parallel (
-  [
+  async.parallel ([
     function (callback) {
       subscriptions.on ('connect', function (err) {
         xLog.verb ('Bus client subscribed to notifications bus');
