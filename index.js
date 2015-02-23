@@ -14,10 +14,17 @@ var commands              = axon.socket ('push');
 var eventsHandlerRegistry = {};
 var commandsRegistry      = {};
 var token                 = 'invalid';
+var autoconnect           = false;
 
 subscriptions.subscribe ('*');
 
 subscriptions.on ('message', function (topic, msg) {
+  if (autoconnect && topic === 'heartbeat') {
+    autoconnect = false;
+    exports.command.send ('autoconnect');
+    return;
+  }
+
   if (!eventsHandlerRegistry.hasOwnProperty (topic)) {
     return;
   }
@@ -56,8 +63,10 @@ exports.connect = function (busToken, callback) {
         xLog.verb ('Connected with token: ' + token);
         callback (err);
       };
+
       subscriptions.subscribe ('connected');
-      exports.command.send ('autoconnect');
+      autoconnect = true;
+      /* Autoconnect is sent when the server is ready (heartbeat). */
     } else {
       token = busToken;
       xLog.verb ('Connected with token: ' + token);
