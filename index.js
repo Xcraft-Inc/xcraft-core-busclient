@@ -142,7 +142,9 @@ exports.events = {
 
     notifier.send (topic, busMessage);
 
-    xLog.verb ('client send notification on topic:' + topic);
+    if (topic !== 'heartbeat') {
+      xLog.verb ('client send notification on topic:' + topic);
+    }
   }
 };
 
