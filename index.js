@@ -23,8 +23,7 @@ subscriptions.on ('message', function (topic, msg) {
   }
 
   xLog.verb ('notification received: %s -> data:%s',
-               topic,
-               JSON.stringify (msg));
+             topic, JSON.stringify (msg));
 
   if (msg.token === token || topic === 'connected') {
     eventsHandlerRegistry[topic] (msg);
