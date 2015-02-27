@@ -42,7 +42,7 @@ subscriptions.on ('message', function (topic, msg) {
 /**
  * Connect the client to the buses.
  *
- * If the bus is not known, the argument can be null, then the client try
+ * If the bus is not known, the argument can be null, then the client tries
  * to autoconnect to the server. It's a trivial mechanism, there is no
  * support for user authentication.
  *
