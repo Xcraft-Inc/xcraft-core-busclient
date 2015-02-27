@@ -177,9 +177,9 @@ exports.command = {
     var busMessage = xBus.newMessage ();
 
     busMessage.data = data;
-    commands.send (cmd, busMessage);
 
     xLog.verb ('client send \'%s\' command', cmd);
+    commands.send (cmd, busMessage);
   }
 };
 
