@@ -153,8 +153,12 @@ exports.command = {
     if (finishHandler) {
       /* Subscribe to end command notification. */
       var finishTopic = cmd + '.finished';
-      subscriptions.subscribe (finishTopic);
-      eventsHandlerRegistry[finishTopic] = finishHandler;
+      exports.events.subscribe (finishTopic);
+
+      eventsHandlerRegistry[finishTopic] = function (msg) {
+        exports.events.unsubscribe (finishTopic);
+        finishHandler (null, msg);
+      };
 
       xLog.verb ('finish handler registered for cmd: ' + cmd);
     }
