@@ -149,6 +149,17 @@ exports.events = {
 };
 
 exports.command = {
+  /**
+   * Send a command on the bus.
+   *
+   * If a callback is specified, the finished topic is automatically
+   * subscribed to the events bus. Then when the callback is called, the
+   * topic is unsubscribed.
+   *
+   * @param {string} cmd - Command's name.
+   * @param {Object} [data] - Map of arguments passed to the command.
+   * @param {function(err, results)} [finishHandler] - Callback.
+   */
   send: function (cmd, data, finishHandler) {
     if (finishHandler) {
       /* Subscribe to end command notification. */
