@@ -39,6 +39,16 @@ subscriptions.on ('message', function (topic, msg) {
   }
 });
 
+/**
+ * Connect the client to the buses.
+ *
+ * If the bus is not known, the argument can be null, then the client try
+ * to autoconnect to the server. It's a trivial mechanism, there is no
+ * support for user authentication.
+ *
+ * @param {string} [busToken]
+ * @param {function(err)} callback
+ */
 exports.connect = function (busToken, callback) {
   /* Save bus token for checking. */
   async.parallel ([
@@ -89,6 +99,12 @@ exports.getCommandsRegistry = function () {
 exports.subscriptions = subscriptions;
 
 exports.events = {
+  /**
+   * Subscribe to a topic (an event).
+   *
+   * @param {string} topic - Event's name.
+   * @param {function(msg)} handler - Handler to attach to this topic.
+   */
   subscribe: function (topic, handler) {
     xLog.verb ('client added handler to topic: ' + topic);
 
@@ -96,6 +112,7 @@ exports.events = {
 
     /* register a pre-handler for deserialze object if needed */
     eventsHandlerRegistry[topic] = function (msg) {
+      /* FIXME: it's not safe. */
       if (msg.serialized) {
         msg.data = JSON.parse (msg.data, function (key, value) {
           if (value &&
@@ -119,6 +136,11 @@ exports.events = {
     };
   },
 
+  /**
+   * Unsubscribe from a topic (event).
+   *
+   * @param {string} topic - Event's name.
+   */
   unsubscribe: function (topic) {
     xLog.verb ('client removed handler on topic: ' + topic);
 
@@ -126,6 +148,16 @@ exports.events = {
     delete eventsHandlerRegistry[topic];
   },
 
+  /**
+   * Send an event on the bus.
+   *
+   * The \p data can be stringified for example in the case of a simple
+   * function. Of course, the function must be standalone.
+   *
+   * @param {string} topic - Event's name.
+   * @param {Object} [data]
+   * @param {boolean} [serialize] - Stringify the object.
+   */
   send: function (topic, data, serialize) {
     var notifier   = xBus.getNotifier ();
     var busMessage = xBus.newMessage ();
@@ -142,6 +174,7 @@ exports.events = {
 
     notifier.send (topic, busMessage);
 
+    /* Reduce noise, heartbeat is not very interesting. */
     if (topic !== 'heartbeat') {
       xLog.verb ('client send notification on topic:' + topic);
     }
@@ -183,6 +216,11 @@ exports.command = {
   }
 };
 
+/**
+ * Close the connections on the buses.
+ *
+ * @param {function(err)} callback
+ */
 exports.stop = function (callback) {
   async.parallel ([
     function (callback) {
