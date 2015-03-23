@@ -42,8 +42,7 @@ subscriptions.on ('message', function (topic, msg) {
     return;
   }
 
-  xLog.verb ('notification received: %s',
-             topic);
+  xLog.verb ('notification received: %s', topic);
 
   if (topic === 'greathall.connected') {
     if (!connected) {
