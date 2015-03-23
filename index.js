@@ -19,9 +19,6 @@ var autoconnect           = false;
 
 
 var topicModifier = function (topic) {
-  if (/^\*\./.test (topic)) {
-    return topic.substr (2);
-  }
   if (orcName) {
     return orcName + '.' + topic;
   } else {
