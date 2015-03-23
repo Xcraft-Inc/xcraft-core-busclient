@@ -49,9 +49,6 @@ subscriptions.on ('message', function (topic, msg) {
              topic);
 
   if (msg.token === token || topic === 'greathall.connected') {
-    if (orcName) {
-      subscriptions.subscribe (orcName + '.*');
-    }
     eventsHandlerRegistry[topic] (msg);
   } else {
     xLog.verb ('invalid token, event discarded');
@@ -90,7 +87,13 @@ exports.connect = function (busToken, callback) {
         token            = msg.data.token;
         orcName          = msg.data.orcName;
         commandsRegistry = msg.data.cmdRegistry;
+
         xLog.info (orcName + ' is serving  ' + token + ' Great Hall');
+
+        if (orcName) {
+          subscriptions.subscribe (orcName + '.*');
+        }
+
         callback (err);
       };
 
