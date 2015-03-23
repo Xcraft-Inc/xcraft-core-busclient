@@ -31,7 +31,6 @@ var topicModifier = function (topic) {
 subscriptions.subscribe ('greathall.*');
 
 subscriptions.on ('message', function (topic, msg) {
-
   if (autoconnect && topic === 'greathall.heartbeat') {
     autoconnect = false;
     exports.command.send ('autoconnect');
