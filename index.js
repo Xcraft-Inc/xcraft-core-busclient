@@ -16,6 +16,7 @@ var commandsRegistry      = {};
 var token                 = 'invalid';
 var orcName               = null;
 var autoconnect           = false;
+var connected             = false;
 
 
 var topicModifier = function (topic) {
@@ -44,7 +45,15 @@ subscriptions.on ('message', function (topic, msg) {
   xLog.verb ('notification received: %s',
              topic);
 
-  if (msg.token === token || topic === 'greathall.connected') {
+  if (topic === 'greathall.connected') {
+    if (!connected) {
+      connected = true;
+      eventsHandlerRegistry[topic] (msg);
+    }
+    return;
+  }
+
+  if (msg.token === token) {
     eventsHandlerRegistry[topic] (msg);
   } else {
     xLog.verb ('invalid token, event discarded');
