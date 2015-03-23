@@ -14,6 +14,7 @@ var commands              = axon.socket ('push');
 var eventsHandlerRegistry = {};
 var commandsRegistry      = {};
 var token                 = 'invalid';
+var orcName               = null;
 var autoconnect           = false;
 
 subscriptions.subscribe ('*');
@@ -69,8 +70,9 @@ exports.connect = function (busToken, callback) {
     if (!busToken) {
       eventsHandlerRegistry.connected = function (msg) {
         token            = msg.data.token;
+        orcName          = msg.data.orcName;
         commandsRegistry = msg.data.cmdRegistry;
-        xLog.verb ('Connected with token: ' + token);
+        xLog.info (orcName + ' is serving  ' + token + ' Great Hall');
         callback (err);
       };
 
