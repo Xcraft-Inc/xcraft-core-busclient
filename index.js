@@ -17,10 +17,25 @@ var token                 = 'invalid';
 var orcName               = null;
 var autoconnect           = false;
 
-subscriptions.subscribe ('*');
+
+var topicModifier = function (topic) {
+  if (/^\*\./.test (topic)) {
+    return topic.substr (2);
+  }
+  if (orcName) {
+    return orcName + '.' + topic;
+  } else {
+    var commander = xBus.getCommander ();
+    var currentOrc = commander.getCurrentOrc ();
+    return currentOrc ? currentOrc + '.' + topic : topic;
+  }
+};
+
+subscriptions.subscribe ('greathall.*');
 
 subscriptions.on ('message', function (topic, msg) {
-  if (autoconnect && topic === 'heartbeat') {
+
+  if (autoconnect && topic === 'greathall.heartbeat') {
     autoconnect = false;
     exports.command.send ('autoconnect');
     return;
@@ -30,10 +45,13 @@ subscriptions.on ('message', function (topic, msg) {
     return;
   }
 
-  xLog.verb ('notification received: %s -> data:%s',
-             topic, JSON.stringify (msg));
+  xLog.verb ('notification received: %s',
+             topic);
 
-  if (msg.token === token || topic === 'connected') {
+  if (msg.token === token || topic === 'greathall.connected') {
+    if (orcName) {
+      subscriptions.subscribe (orcName + '.*');
+    }
     eventsHandlerRegistry[topic] (msg);
   } else {
     xLog.verb ('invalid token, event discarded');
@@ -68,7 +86,7 @@ exports.connect = function (busToken, callback) {
   ], function (err) {
     // TODO: Explain auto-connect mecha
     if (!busToken) {
-      eventsHandlerRegistry.connected = function (msg) {
+      eventsHandlerRegistry['greathall.connected'] = function (msg) {
         token            = msg.data.token;
         orcName          = msg.data.orcName;
         commandsRegistry = msg.data.cmdRegistry;
@@ -76,7 +94,6 @@ exports.connect = function (busToken, callback) {
         callback (err);
       };
 
-      subscriptions.subscribe ('connected');
       autoconnect = true;
       /* Autoconnect is sent when the server is ready (heartbeat). */
     } else {
@@ -94,6 +111,10 @@ exports.getToken = function () {
   return token;
 };
 
+exports.getOrcName = function () {
+  return orcName;
+};
+
 exports.getCommandsRegistry = function () {
   return commandsRegistry;
 };
@@ -108,6 +129,7 @@ exports.events = {
    * @param {function(msg)} handler - Handler to attach to this topic.
    */
   subscribe: function (topic, handler) {
+    topic = topicModifier (topic);
     xLog.verb ('client added handler to topic: ' + topic);
 
     subscriptions.subscribe (topic);
@@ -144,6 +166,7 @@ exports.events = {
    * @param {string} topic - Event's name.
    */
   unsubscribe: function (topic) {
+    topic = topicModifier (topic);
     xLog.verb ('client removed handler on topic: ' + topic);
 
     subscriptions.unsubscribe (topic);
@@ -161,6 +184,7 @@ exports.events = {
    * @param {boolean} [serialize] - Stringify the object.
    */
   send: function (topic, data, serialize) {
+    topic = topicModifier (topic);
     var notifier   = xBus.getNotifier ();
     var busMessage = xBus.newMessage ();
 
@@ -173,11 +197,11 @@ exports.events = {
     } else {
       busMessage.data = data;
     }
-
+    console.log ('#######'+ topic);
     notifier.send (topic, busMessage);
 
     /* Reduce noise, heartbeat is not very interesting. */
-    if (topic !== 'heartbeat') {
+    if (topic !== 'greathall.heartbeat') {
       xLog.verb ('client send notification on topic:' + topic);
     }
   }
