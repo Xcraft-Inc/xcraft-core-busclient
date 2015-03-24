@@ -29,14 +29,16 @@ var topicModifier = function (topic) {
   }
 };
 
+/* broadcasted by server */
 subscriptions.subscribe ('greathall.*');
+
+/* broadcasted by bus */
 subscriptions.subscribe ('gameover');
 
 subscriptions.on ('message', function (topic, msg) {
   if (topic === 'gameover') {
-    exports.stop (function () {
-      xLog.info ('Game Over');
-    });
+    xLog.err ('Game Over');
+    exports.events.send ('disconnected', msg);
     return;
   }
 
