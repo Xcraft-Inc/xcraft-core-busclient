@@ -100,7 +100,7 @@ exports.connect = function (busToken, callback) {
         orcName          = msg.data.orcName;
         commandsRegistry = msg.data.cmdRegistry;
 
-        xLog.info (orcName + ' is serving  ' + token + ' Great Hall');
+        xLog.info (orcName + ' is serving ' + token + ' Great Hall');
 
         if (orcName) {
           subscriptions.subscribe (orcName + '.*');
