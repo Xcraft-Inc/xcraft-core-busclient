@@ -36,7 +36,9 @@ subscriptions.subscribe ('gameover');
 
 subscriptions.on ('message', function (topic, msg) {
   if (topic === 'gameover') {
-    xLog.err ('Game Over');
+    xLog.info ('Game Over');
+    connected = false;
+    exports.stop ();
     return;
   }
 
@@ -132,6 +134,10 @@ exports.getOrcName = function () {
 
 exports.getCommandsRegistry = function () {
   return commandsRegistry;
+};
+
+exports.isConnected = function () {
+  return connected;
 };
 
 exports.subscriptions = subscriptions;
