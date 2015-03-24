@@ -20,16 +20,22 @@ var connected             = false;
 
 
 var topicModifier = function (topic) {
-  if (orcName) {
-    return orcName + '.' + topic;
+  if (/.*::.*/.test (topic)) {
+    return topic;
   }
 
+  /* Client side */
+  if (orcName) {
+    return orcName + '::' + topic;
+  }
+
+  /* Server side */
   var state = xBus.getCommander ().getCurrentState ();
-  return state.which + '.' + topic;
+  return state.which + '::' + topic;
 };
 
 /* broadcasted by server */
-subscriptions.subscribe ('greathall.*');
+subscriptions.subscribe ('greathall::*');
 
 /* broadcasted by bus */
 subscriptions.subscribe ('gameover');
@@ -42,7 +48,7 @@ subscriptions.on ('message', function (topic, msg) {
     return;
   }
 
-  if (autoconnect && topic === 'greathall.heartbeat') {
+  if (autoconnect && topic === 'greathall::heartbeat') {
     autoconnect = false;
     exports.command.send ('autoconnect');
     return;
@@ -54,7 +60,7 @@ subscriptions.on ('message', function (topic, msg) {
 
   xLog.verb ('notification received: %s', topic);
 
-  if (topic === 'greathall.autoconnect.finished') {
+  if (topic === 'greathall::autoconnect.finished') {
     if (!connected) {
       connected = true;
       eventsHandlerRegistry[topic] (msg);
@@ -97,7 +103,7 @@ exports.connect = function (busToken, callback) {
   ], function (err) {
     // TODO: Explain auto-connect mecha
     if (!busToken) {
-      eventsHandlerRegistry['greathall.autoconnect.finished'] = function (msg) {
+      eventsHandlerRegistry['greathall::autoconnect.finished'] = function (msg) {
         token            = msg.data.token;
         orcName          = msg.data.orcName;
         commandsRegistry = msg.data.cmdRegistry;
@@ -105,7 +111,7 @@ exports.connect = function (busToken, callback) {
         xLog.info (orcName + ' is serving ' + token + ' Great Hall');
 
         if (orcName) {
-          subscriptions.subscribe (orcName + '.*');
+          subscriptions.subscribe (orcName + '::*');
         }
 
         callback (err);
@@ -225,12 +231,12 @@ exports.events = {
 
     var commander = xBus.getCommander ();
     var state     = commander.getCurrentState ();
-    if (state.event === originalTopic) {
+    if (state.event === originalTopic.replace (/[^:]*::/, '')) {
       commander.resetCurrentState ();
     }
 
     /* Reduce noise, heartbeat is not very interesting. */
-    if (topic !== 'greathall.heartbeat') {
+    if (topic !== 'greathall::heartbeat') {
       xLog.verb ('client send notification on topic:' + topic);
     }
   }
@@ -251,7 +257,7 @@ exports.command = {
   send: function (cmd, data, finishHandler) {
     if (finishHandler) {
       /* Subscribe to end command notification. */
-      var finishTopic = cmd + '.finished';
+      var finishTopic = topicModifier (cmd + '.finished');
       exports.events.subscribe (finishTopic);
 
       eventsHandlerRegistry[finishTopic] = function (msg) {
