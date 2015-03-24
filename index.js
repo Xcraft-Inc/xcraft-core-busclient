@@ -212,7 +212,7 @@ exports.events = {
     } else {
       busMessage.data = data;
     }
-    console.log ('#######'+ topic);
+
     notifier.send (topic, busMessage);
 
     /* Reduce noise, heartbeat is not very interesting. */
