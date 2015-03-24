@@ -38,7 +38,6 @@ subscriptions.subscribe ('gameover');
 subscriptions.on ('message', function (topic, msg) {
   if (topic === 'gameover') {
     xLog.err ('Game Over');
-    exports.events.send ('disconnected', msg);
     return;
   }
 
