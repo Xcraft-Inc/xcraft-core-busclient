@@ -30,8 +30,16 @@ var topicModifier = function (topic) {
 };
 
 subscriptions.subscribe ('greathall.*');
+subscriptions.subscribe ('gameover');
 
 subscriptions.on ('message', function (topic, msg) {
+  if (topic === 'gameover') {
+    exports.stop (function () {
+      xLog.info ('Game Over');
+    });
+    return;
+  }
+
   if (autoconnect && topic === 'greathall.heartbeat') {
     autoconnect = false;
     exports.command.send ('autoconnect');
