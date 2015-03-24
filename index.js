@@ -22,11 +22,10 @@ var connected             = false;
 var topicModifier = function (topic) {
   if (orcName) {
     return orcName + '.' + topic;
-  } else {
-    var commander = xBus.getCommander ();
-    var currentOrc = commander.getCurrentOrc ();
-    return currentOrc ? currentOrc + '.' + topic : topic;
   }
+
+  var state = xBus.getCommander ().getCurrentState ();
+  return state.which + '.' + topic;
 };
 
 /* broadcasted by server */
@@ -53,7 +52,7 @@ subscriptions.on ('message', function (topic, msg) {
 
   xLog.verb ('notification received: %s', topic);
 
-  if (topic === 'greathall.connected') {
+  if (topic === 'greathall.autoconnect.finished') {
     if (!connected) {
       connected = true;
       eventsHandlerRegistry[topic] (msg);
@@ -96,7 +95,7 @@ exports.connect = function (busToken, callback) {
   ], function (err) {
     // TODO: Explain auto-connect mecha
     if (!busToken) {
-      eventsHandlerRegistry['greathall.connected'] = function (msg) {
+      eventsHandlerRegistry['greathall.autoconnect.finished'] = function (msg) {
         token            = msg.data.token;
         orcName          = msg.data.orcName;
         commandsRegistry = msg.data.cmdRegistry;
@@ -200,7 +199,9 @@ exports.events = {
    * @param {boolean} [serialize] - Stringify the object.
    */
   send: function (topic, data, serialize) {
+    var originalTopic = topic;
     topic = topicModifier (topic);
+
     var notifier   = xBus.getNotifier ();
     var busMessage = xBus.newMessage ();
 
@@ -215,6 +216,12 @@ exports.events = {
     }
 
     notifier.send (topic, busMessage);
+
+    var commander = xBus.getCommander ();
+    var state     = commander.getCurrentState ();
+    if (state.event === originalTopic) {
+      commander.resetCurrentState ();
+    }
 
     /* Reduce noise, heartbeat is not very interesting. */
     if (topic !== 'greathall.heartbeat') {
