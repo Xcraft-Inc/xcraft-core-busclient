@@ -6,7 +6,6 @@ var axon  = require ('axon');
 var async = require ('async');
 
 var xLog       = require ('xcraft-core-log') (moduleName);
-var busConfig  = require ('xcraft-core-etc').load ('xcraft-core-bus');
 var xBus       = require ('xcraft-core-bus');
 
 var subscriptions         = axon.socket ('sub');
@@ -17,7 +16,7 @@ var token                 = 'invalid';
 var orcName               = null;
 var autoconnect           = false;
 var connected             = false;
-var namespaceServer       = busConfig.namespaceServer;
+var namespaceServer       = 'greathall';
 
 
 var topicModifier = function (topic) {
@@ -127,6 +126,8 @@ exports.connect = function (busToken, callback) {
     }
   });
 
+  var busConfig   = require ('xcraft-core-etc').load ('xcraft-core-bus');
+  namespaceServer = busConfig.namespaceServer;
   subscriptions.connect (parseInt (busConfig.notifierPort), busConfig.host);
   commands.connect (parseInt (busConfig.commanderPort), busConfig.host);
 };
