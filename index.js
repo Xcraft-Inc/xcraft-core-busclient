@@ -6,6 +6,7 @@ var axon  = require ('axon');
 var async = require ('async');
 
 var xLog       = require ('xcraft-core-log') (moduleName);
+var busConfig  = require ('xcraft-core-etc').load ('xcraft-core-bus');
 var xBus       = require ('xcraft-core-bus');
 
 var subscriptions         = axon.socket ('sub');
