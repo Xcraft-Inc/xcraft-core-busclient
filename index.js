@@ -125,8 +125,6 @@ exports.connect = function (busToken, callback) {
     }
   });
 
-  var busConfig   = require ('xcraft-core-etc').load ('xcraft-core-bus');
-  namespaceServer = busConfig.namespaceServer;
   subscriptions.connect (parseInt (busConfig.notifierPort), busConfig.host);
   commands.connect (parseInt (busConfig.commanderPort), busConfig.host);
 };
