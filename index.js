@@ -16,7 +16,6 @@ var token                 = 'invalid';
 var orcName               = null;
 var autoconnect           = false;
 var connected             = false;
-var namespaceServer       = 'greathall';
 
 
 var topicModifier = function (topic) {
@@ -35,7 +34,7 @@ var topicModifier = function (topic) {
 };
 
 /* broadcasted by server */
-subscriptions.subscribe (namespaceServer + '::*');
+subscriptions.subscribe ('greathall::*');
 
 /* broadcasted by bus */
 subscriptions.subscribe ('gameover');
@@ -48,7 +47,7 @@ subscriptions.on ('message', function (topic, msg) {
     return;
   }
 
-  if (autoconnect && topic === namespaceServer + '::heartbeat') {
+  if (autoconnect && topic === 'greathall::heartbeat') {
     autoconnect = false;
     exports.command.send ('autoconnect');
     return;
@@ -60,7 +59,7 @@ subscriptions.on ('message', function (topic, msg) {
 
   xLog.verb ('notification received: %s', topic);
 
-  if (topic === namespaceServer + '::autoconnect.finished') {
+  if (topic === 'greathall::autoconnect.finished') {
     if (!connected) {
       connected = true;
       eventsHandlerRegistry[topic] (msg);
@@ -103,7 +102,7 @@ exports.connect = function (busToken, callback) {
   ], function (err) {
     // TODO: Explain auto-connect mecha
     if (!busToken) {
-      eventsHandlerRegistry[namespaceServer + '::autoconnect.finished'] = function (msg) {
+      eventsHandlerRegistry['greathall::autoconnect.finished'] = function (msg) {
         token            = msg.data.token;
         orcName          = msg.data.orcName;
         commandsRegistry = msg.data.cmdRegistry;
@@ -238,7 +237,7 @@ exports.events = {
     }
 
     /* Reduce noise, heartbeat is not very interesting. */
-    if (topic !== namespaceServer + '::heartbeat') {
+    if (topic !== 'greathall::heartbeat') {
       xLog.verb ('client send notification on topic:' + topic);
     }
   }
