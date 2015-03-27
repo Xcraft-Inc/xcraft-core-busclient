@@ -232,7 +232,7 @@ exports.events = {
     var commander = xBus.getCommander ();
     var state     = commander.getCurrentState ();
     if (state.event === originalTopic.replace (/[^:]*::/, '')) {
-      commander.resetCurrentState ();
+      commander.statePop ();
     }
 
     /* Reduce noise, heartbeat is not very interesting. */
