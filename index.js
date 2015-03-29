@@ -24,14 +24,7 @@ var topicModifier = function (topic) {
     return topic;
   }
 
-  /* Client side */
-  if (orcName) {
-    return orcName + '::' + topic;
-  }
-
-  /* Server side */
-  var state = xBus.getCommander ().getCurrentState ();
-  return state.which + '::' + topic;
+  return exports.getStateWhich () + '::' + topic;
 };
 
 /* broadcasted by server */
@@ -136,6 +129,22 @@ exports.getToken = function () {
 
 exports.getOrcName = function () {
   return orcName;
+};
+
+exports.getStateWhich = function () {
+  /* Client side */
+  if (orcName) {
+    return orcName;
+  }
+
+  /* Server side */
+  var commander = xBus.getCommander ();
+  if (commander.hasOwnProperty ('getCurrentState')) {
+    var state = commander.getCurrentState ();
+    return state.which;
+  }
+
+  return null;
 };
 
 exports.getCommandsRegistry = function () {
