@@ -9,26 +9,28 @@ var xLog       = require ('xcraft-core-log') (moduleName);
 var busConfig  = require ('xcraft-core-etc').load ('xcraft-core-bus');
 var xBus       = require ('xcraft-core-bus');
 
-var subscriptions         = axon.socket ('sub');
-var commands              = axon.socket ('push');
-var eventsHandlerRegistry = {};
-var commandsRegistry      = {};
-var token                 = 'invalid';
-var orcName               = null;
-var autoconnect           = false;
-var connected             = false;
+var subSocket  = axon.socket ('sub');
+var pushSocket = axon.socket ('push');
 
-var events  = require ('./lib/events.js') (subscriptions, eventsHandlerRegistry);
-var command = require ('./lib/command.js') (commands, commandsRegistry);
+var eventsRegistry   = {};
+var commandsRegistry = {};
+
+var token       = 'invalid';
+var orcName     = null;
+var autoconnect = false;
+var connected   = false;
+
+var events  = require ('./lib/events.js') (subSocket, eventsRegistry);
+var command = require ('./lib/command.js') (pushSocket, commandsRegistry);
 
 
 /* broadcasted by server */
-subscriptions.subscribe ('greathall::*');
+subSocket.subscribe ('greathall::*');
 
 /* broadcasted by bus */
-subscriptions.subscribe ('gameover');
+subSocket.subscribe ('gameover');
 
-subscriptions.on ('message', function (topic, msg) {
+subSocket.on ('message', function (topic, msg) {
   if (topic === 'gameover') {
     xLog.info ('Game Over');
     connected = false;
@@ -42,7 +44,7 @@ subscriptions.on ('message', function (topic, msg) {
     return;
   }
 
-  if (!eventsHandlerRegistry.hasOwnProperty (topic)) {
+  if (!eventsRegistry.hasOwnProperty (topic)) {
     return;
   }
 
@@ -51,13 +53,13 @@ subscriptions.on ('message', function (topic, msg) {
   if (topic === 'greathall::autoconnect.finished') {
     if (!connected) {
       connected = true;
-      eventsHandlerRegistry[topic] (msg);
+      eventsRegistry[topic] (msg);
     }
     return;
   }
 
   if (msg.token === token) {
-    eventsHandlerRegistry[topic] (msg);
+    eventsRegistry[topic] (msg);
   } else {
     xLog.verb ('invalid token, event discarded');
   }
@@ -77,21 +79,21 @@ exports.connect = function (busToken, callback) {
   /* Save bus token for checking. */
   async.parallel ([
     function (callback) {
-      subscriptions.on ('connect', function (err) {
+      subSocket.on ('connect', function (err) {
         xLog.verb ('Bus client subscribed to notifications bus');
         callback (err);
       });
     },
     function (callback) {
-      commands.on ('connect', function (err) {
+      pushSocket.on ('connect', function (err) {
         xLog.verb ('Bus client ready to send on command bus');
         callback (err);
       });
     }
   ], function (err) {
-    // TODO: Explain auto-connect mecha
+    /* TODO: Explain auto-connect mecha */
     if (!busToken) {
-      eventsHandlerRegistry['greathall::autoconnect.finished'] = function (msg) {
+      eventsRegistry['greathall::autoconnect.finished'] = function (msg) {
         token            = msg.data.token;
         orcName          = msg.data.orcName;
         commandsRegistry = msg.data.cmdRegistry;
@@ -99,7 +101,7 @@ exports.connect = function (busToken, callback) {
         xLog.info (orcName + ' is serving ' + token + ' Great Hall');
 
         if (orcName) {
-          subscriptions.subscribe (orcName + '::*');
+          subSocket.subscribe (orcName + '::*');
         }
 
         callback (err);
@@ -114,8 +116,33 @@ exports.connect = function (busToken, callback) {
     }
   });
 
-  subscriptions.connect (parseInt (busConfig.notifierPort), busConfig.host);
-  commands.connect (parseInt (busConfig.commanderPort), busConfig.host);
+  subSocket.connect (parseInt (busConfig.notifierPort), busConfig.host);
+  pushSocket.connect (parseInt (busConfig.commanderPort), busConfig.host);
+};
+
+/**
+ * Close the connections on the buses.
+ *
+ * @param {function(err)} callback
+ */
+exports.stop = function (callback) {
+  async.parallel ([
+    function (callback) {
+      subSocket.on ('close', callback);
+    },
+    function (callback) {
+      pushSocket.on ('close', callback);
+    }
+  ], function (err) {
+    xLog.verb ('Stopped');
+    if (callback) {
+      callback (err);
+    }
+  });
+
+  xLog.verb ('Stopping...');
+  subSocket.close ();
+  pushSocket.close ();
 };
 
 exports.getToken = function () {
@@ -150,31 +177,7 @@ exports.isConnected = function () {
   return connected;
 };
 
-/**
- * Close the connections on the buses.
- *
- * @param {function(err)} callback
- */
-exports.stop = function (callback) {
-  async.parallel ([
-    function (callback) {
-      subscriptions.on ('close', callback);
-    },
-    function (callback) {
-      commands.on ('close', callback);
-    }
-  ], function (err) {
-    xLog.verb ('Stopped');
-    if (callback) {
-      callback (err);
-    }
-  });
+exports.subscriptions = subSocket;
 
-  xLog.verb ('Stopping...');
-  subscriptions.close ();
-  commands.close ();
-};
-
-exports.subscriptions = subscriptions;
-exports.events = events;
+exports.events  = events;
 exports.command = command;
