@@ -21,7 +21,7 @@ var autoconnect = false;
 var connected   = false;
 
 var events  = require ('./lib/events.js') (subSocket, eventsRegistry);
-var command = require ('./lib/command.js') (pushSocket, commandsRegistry);
+var command = require ('./lib/command.js') (pushSocket, eventsRegistry, events);
 
 
 /* broadcasted by server */
