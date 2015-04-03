@@ -18,14 +18,9 @@ var orcName               = null;
 var autoconnect           = false;
 var connected             = false;
 
+var events  = require ('./lib/events.js') (subscriptions, eventsHandlerRegistry);
+var command = require ('./lib/command.js') (commands, commandsRegistry);
 
-var topicModifier = function (topic) {
-  if (/.*::.*/.test (topic)) {
-    return topic;
-  }
-
-  return exports.getStateWhich () + '::' + topic;
-};
 
 /* broadcasted by server */
 subscriptions.subscribe ('greathall::*');
@@ -155,137 +150,6 @@ exports.isConnected = function () {
   return connected;
 };
 
-exports.subscriptions = subscriptions;
-
-exports.events = {
-  /**
-   * Subscribe to a topic (an event).
-   *
-   * @param {string} topic - Event's name.
-   * @param {function(msg)} handler - Handler to attach to this topic.
-   */
-  subscribe: function (topic, handler) {
-    topic = topicModifier (topic);
-    xLog.verb ('client added handler to topic: ' + topic);
-
-    subscriptions.subscribe (topic);
-
-    /* register a pre-handler for deserialze object if needed */
-    eventsHandlerRegistry[topic] = function (msg) {
-      /* FIXME: it's not safe. */
-      if (msg.serialized) {
-        msg.data = JSON.parse (msg.data, function (key, value) {
-          if (value &&
-              typeof value === 'string' &&
-              value.substr (0, 8) === 'function') {
-            var startBody = value.indexOf ('{') + 1;
-            var endBody   = value.lastIndexOf ('}');
-            var startArgs = value.indexOf ('(') + 1;
-            var endArgs   = value.indexOf (')');
-
-            return new Function (value.substring (startArgs, endArgs), /* jshint ignore:line */
-                                 value.substring (startBody, endBody));
-          }
-
-          return value;
-        });
-      }
-
-      /* finally call user code (with or without deserialized data) */
-      handler (msg);
-    };
-  },
-
-  /**
-   * Unsubscribe from a topic (event).
-   *
-   * @param {string} topic - Event's name.
-   */
-  unsubscribe: function (topic) {
-    topic = topicModifier (topic);
-    xLog.verb ('client removed handler on topic: ' + topic);
-
-    subscriptions.unsubscribe (topic);
-    delete eventsHandlerRegistry[topic];
-  },
-
-  /**
-   * Send an event on the bus.
-   *
-   * The \p data can be stringified for example in the case of a simple
-   * function. Of course, the function must be standalone.
-   *
-   * @param {string} topic - Event's name.
-   * @param {Object} [data]
-   * @param {boolean} [serialize] - Stringify the object.
-   */
-  send: function (topic, data, serialize) {
-    var originalTopic = topic;
-    topic = topicModifier (topic);
-
-    var notifier   = xBus.getNotifier ();
-    var busMessage = xBus.newMessage ();
-
-    if (serialize) {
-      busMessage.data = JSON.stringify (data, function (key, value) {
-        return typeof value === 'function' ? value.toString () : value;
-      });
-
-      busMessage.serialized = true;
-    } else {
-      busMessage.data = data;
-    }
-
-    notifier.send (topic, busMessage);
-
-    var commander = xBus.getCommander ();
-    var state     = commander.getCurrentState ();
-    if (state.event === originalTopic.replace (/[^:]*::/, '')) {
-      commander.statePop ();
-    }
-
-    /* Reduce noise, heartbeat is not very interesting. */
-    if (topic !== 'greathall::heartbeat') {
-      xLog.verb ('client send notification on topic:' + topic);
-    }
-  }
-};
-
-exports.command = {
-  /**
-   * Send a command on the bus.
-   *
-   * If a callback is specified, the finished topic is automatically
-   * subscribed to the events bus. Then when the callback is called, the
-   * topic is unsubscribed.
-   *
-   * @param {string} cmd - Command's name.
-   * @param {Object} [data] - Map of arguments passed to the command.
-   * @param {function(err, results)} [finishHandler] - Callback.
-   */
-  send: function (cmd, data, finishHandler) {
-    if (finishHandler) {
-      /* Subscribe to end command notification. */
-      var finishTopic = topicModifier (cmd + '.finished');
-      exports.events.subscribe (finishTopic);
-
-      eventsHandlerRegistry[finishTopic] = function (msg) {
-        exports.events.unsubscribe (finishTopic);
-        finishHandler (null, msg);
-      };
-
-      xLog.verb ('finish handler registered for cmd: ' + cmd);
-    }
-
-    var busMessage = xBus.newMessage ();
-
-    busMessage.data = data;
-
-    xLog.verb ('client send \'%s\' command', cmd);
-    commands.send (cmd, busMessage);
-  }
-};
-
 /**
  * Close the connections on the buses.
  *
@@ -310,3 +174,7 @@ exports.stop = function (callback) {
   subscriptions.close ();
   commands.close ();
 };
+
+exports.subscriptions = subscriptions;
+exports.events = events;
+exports.command = command;
