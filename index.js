@@ -73,7 +73,7 @@ subSocket.on ('message', function (topic, msg) {
  * support for user authentication.
  *
  * @param {string} [busToken]
- * @param {function(err)} callback
+ * @param {Function(err)} callback
  */
 exports.connect = function (busToken, callback) {
   /* Save bus token for checking. */
@@ -123,7 +123,7 @@ exports.connect = function (busToken, callback) {
 /**
  * Close the connections on the buses.
  *
- * @param {function(err)} callback
+ * @param {Function(err)} callback
  */
 exports.stop = function (callback) {
   async.parallel ([
