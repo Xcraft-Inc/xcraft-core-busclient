@@ -40,7 +40,7 @@ subSocket.on ('message', function (topic, msg) {
 
   if (autoconnect && topic === 'greathall::heartbeat') {
     autoconnect = false;
-    exports.command.send ('autoconnect');
+    command.send ('autoconnect');
     return;
   }
 
