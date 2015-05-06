@@ -8,6 +8,7 @@ var async = require ('async');
 var xLog      = require ('xcraft-core-log') (moduleName);
 var busConfig = require ('xcraft-core-etc').load ('xcraft-core-bus');
 var xBus      = require ('xcraft-core-bus');
+var xUtils    = require ('xcraft-core-utils');
 
 var subSocket  = axon.socket ('sub');
 var pushSocket = axon.socket ('push');
@@ -23,7 +24,7 @@ var connected   = false;
 var events  = require ('./lib/events.js') (subSocket, eventsRegistry);
 var command = require ('./lib/command.js') (pushSocket, eventsRegistry, events);
 
-
+var autoConnectToken = '';
 /* broadcasted by server */
 subSocket.subscribe ('greathall::*');
 
@@ -40,7 +41,15 @@ subSocket.on ('message', function (topic, msg) {
 
   if (autoconnect && topic === 'greathall::heartbeat') {
     autoconnect = false;
-    command.send ('autoconnect');
+    xUtils.generateToken (function (err, generatedToken) {
+      if (err) {
+        xLog.err (err);
+        return;
+      }
+      autoConnectToken = generatedToken;
+      command.send ('autoconnect', autoConnectToken);
+    });
+
     return;
   }
 
@@ -51,7 +60,7 @@ subSocket.on ('message', function (topic, msg) {
   xLog.verb ('notification received: %s', topic);
 
   if (topic === 'greathall::autoconnect.finished') {
-    if (!connected) {
+    if (!connected && msg.data.autoConnectToken === autoConnectToken) {
       connected = true;
       eventsRegistry[topic] (msg);
     }
