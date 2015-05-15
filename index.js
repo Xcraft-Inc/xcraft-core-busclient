@@ -210,4 +210,5 @@ BusClient.prototype.topicModifier = function (topic) {
   return this.getStateWhich () + '::' + topic;
 };
 
-module.exports = new BusClient ();
+exports.global    = new BusClient ();
+exports.BusClient = BusClient;
