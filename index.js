@@ -166,6 +166,15 @@ BusClient.prototype.stop = function (callback) {
   self._pushSocket.close ();
 };
 
+BusClient.prototype.newMessage = function () {
+  return {
+    token:     this.getToken (),
+    orcName:   this.getStateWhich (),
+    timestamp: new Date ().toISOString (),
+    data:      {}
+  };
+};
+
 BusClient.prototype.getToken = function () {
   return this._token;
 };
