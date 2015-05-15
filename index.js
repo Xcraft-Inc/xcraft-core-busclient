@@ -6,13 +6,14 @@ var axon  = require ('axon');
 var async = require ('async');
 
 var xLog      = require ('xcraft-core-log') (moduleName);
-var busConfig = require ('xcraft-core-etc').load ('xcraft-core-bus');
 var xBus      = require ('xcraft-core-bus');
 var xUtils    = require ('xcraft-core-utils');
 
 
-function BusClient () {
+function BusClient (busConfig) {
   var self = this;
+
+  self._busConfig = busConfig ? busConfig : require ('xcraft-core-etc').load ('xcraft-core-bus');
 
   self._subSocket  = axon.socket ('sub');
   self._pushSocket = axon.socket ('push');
@@ -135,8 +136,8 @@ BusClient.prototype.connect = function (busToken, callback) {
     }
   });
 
-  self._subSocket.connect (parseInt (busConfig.notifierPort), busConfig.host);
-  self._pushSocket.connect (parseInt (busConfig.commanderPort), busConfig.host);
+  self._subSocket.connect (parseInt (self._busConfig.notifierPort), self._busConfig.host);
+  self._pushSocket.connect (parseInt (self._busConfig.commanderPort), self._busConfig.host);
 };
 
 /**
