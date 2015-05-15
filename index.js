@@ -5,9 +5,9 @@ var moduleName = 'bus-client';
 var axon  = require ('axon');
 var async = require ('async');
 
-var xLog      = require ('xcraft-core-log') (moduleName);
-var xBus      = require ('xcraft-core-bus');
-var xUtils    = require ('xcraft-core-utils');
+var xLog   = require ('xcraft-core-log') (moduleName);
+var xBus   = require ('xcraft-core-bus');
+var xUtils = require ('xcraft-core-utils');
 
 
 function BusClient (busConfig) {
