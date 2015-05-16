@@ -26,8 +26,6 @@ function BusClient (busConfig) {
   self._autoconnect = false;
   self._connected   = false;
 
-  self.subscriptions = self._subSocket;
-
   var Events = require ('./lib/events.js');
   self.events = new Events (self, self._subSocket);
 
