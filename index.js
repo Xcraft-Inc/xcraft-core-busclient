@@ -53,9 +53,18 @@ function BusClient (busConfig) {
           return;
         }
         autoConnectToken = generatedToken;
+        self._subSocket.subscribe (autoConnectToken + '::autoconnect.finished');
         self.command.send ('autoconnect', autoConnectToken);
       });
 
+      return;
+    }
+
+    if (!self._connected && topic === autoConnectToken + '::autoconnect.finished') {
+      self._connected = true;
+      self._subSocket.unsubscribe (autoConnectToken + '::autoconnect.finished');
+      self._eventsRegistry['autoconnect.finished'] (msg);
+      delete self._eventsRegistry['autoconnect.finished'];
       return;
     }
 
@@ -64,14 +73,6 @@ function BusClient (busConfig) {
     }
 
     xLog.verb ('notification received: %s', topic);
-
-    if (topic === 'greathall::autoconnect.finished') {
-      if (!self._connected && msg.data.autoConnectToken === autoConnectToken) {
-        self._connected = true;
-        self._eventsRegistry[topic] (msg);
-      }
-      return;
-    }
 
     if (msg.token === self._token) {
       self._eventsRegistry[topic] (msg);
@@ -111,7 +112,7 @@ BusClient.prototype.connect = function (busToken, callback) {
   ], function (err) {
     /* TODO: Explain auto-connect mecha */
     if (!busToken) {
-      self._eventsRegistry['greathall::autoconnect.finished'] = function (msg) {
+      self._eventsRegistry['autoconnect.finished'] = function (msg) {
         self._token            = msg.data.token;
         self._orcName          = msg.data.orcName;
         self._commandsRegistry = msg.data.cmdRegistry;
