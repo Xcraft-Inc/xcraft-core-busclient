@@ -98,16 +98,20 @@ BusClient.prototype.connect = function (busToken, callback) {
   /* Save bus token for checking. */
   async.parallel ([
     function (callback) {
-      self._subSocket.on ('connect', function (err) {
-        xLog.verb ('Bus client subscribed to notifications bus');
-        callback (err);
-      });
+      self._subSocket
+        .on ('connect', function () {
+          xLog.verb ('Bus client subscribed to notifications bus');
+          callback ();
+        })
+        .on ('error', callback);
     },
     function (callback) {
-      self._pushSocket.on ('connect', function (err) {
-        xLog.verb ('Bus client ready to send on command bus');
-        callback (err);
-      });
+      self._pushSocket
+        .on ('connect', function () {
+          xLog.verb ('Bus client ready to send on command bus');
+          callback ();
+        })
+        .on ('error', callback);
     }
   ], function (err) {
     /* TODO: Explain auto-connect mecha */
