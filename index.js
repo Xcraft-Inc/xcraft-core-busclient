@@ -1,6 +1,6 @@
 'use strict';
 
-var moduleName = 'bus-client';
+var moduleName = 'busclient';
 
 var axon  = require ('axon');
 var async = require ('async');
