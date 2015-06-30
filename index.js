@@ -133,6 +133,7 @@ BusClient.prototype.connect = function (busToken, callback) {
       self._autoconnect = true;
       /* Autoconnect is sent when the server is ready (heartbeat). */
     } else {
+      self._connected = true;
       self._token = busToken;
       xLog.verb ('Connected with token: ' + self._token);
       callback (err);
