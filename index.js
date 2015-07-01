@@ -6,7 +6,6 @@ var axon  = require ('axon');
 var async = require ('async');
 
 var xLog   = require ('xcraft-core-log') (moduleName);
-var xBus   = require ('xcraft-core-bus');
 var xUtils = require ('xcraft-core-utils');
 
 var globalBusClient = null;
@@ -191,6 +190,8 @@ BusClient.prototype.getOrcName = function () {
 };
 
 BusClient.prototype.getStateWhich = function () {
+  var xBus = require ('xcraft-core-bus');
+
   /* Client side */
   if (this._orcName) {
     return this._orcName;
