@@ -9,6 +9,8 @@ var xLog   = require ('xcraft-core-log') (moduleName);
 var xBus   = require ('xcraft-core-bus');
 var xUtils = require ('xcraft-core-utils');
 
+var globalBusClient = null;
+
 
 function BusClient (busConfig) {
   var self = this;
@@ -224,5 +226,13 @@ BusClient.prototype.topicModifier = function (topic) {
   return this.getStateWhich () + '::' + topic;
 };
 
-exports.global    = new BusClient ();
+exports.initGlobal = function () {
+  globalBusClient = new BusClient ();
+  return globalBusClient;
+};
+
+exports.getGlobal = function () {
+  return globalBusClient;
+};
+
 exports.BusClient = BusClient;
