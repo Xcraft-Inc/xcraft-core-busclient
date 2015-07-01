@@ -168,6 +168,7 @@ BusClient.prototype.stop = function (callback) {
   });
 
   xLog.verb ('Stopping...');
+  self._connected = false;
   self._subSocket.close ();
   self._pushSocket.close ();
 };
