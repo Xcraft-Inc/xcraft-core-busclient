@@ -5,7 +5,7 @@ var moduleName = 'busclient';
 var axon  = require ('axon');
 var async = require ('async');
 
-var xLog   = require ('xcraft-core-log') (moduleName);
+var xLog   = require ('xcraft-core-log') (moduleName, true);
 var xUtils = require ('xcraft-core-utils');
 
 var globalBusClient = null;
