@@ -48,7 +48,7 @@ function BusClient (busConfig) {
 
     if (self._autoconnect && topic === 'greathall::heartbeat') {
       self._autoconnect = false;
-      xUtils.generateToken (function (err, generatedToken) {
+      xUtils.crypto.genToken (function (err, generatedToken) {
         if (err) {
           xLog.err (err);
           return;
