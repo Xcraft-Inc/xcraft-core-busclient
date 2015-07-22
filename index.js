@@ -115,6 +115,11 @@ BusClient.prototype.connect = function (busToken, callback) {
         .on ('error', callback);
     }
   ], function (err) {
+    if (err) {
+      callback (err);
+      return;
+    }
+
     /* TODO: Explain auto-connect mecha */
     if (!busToken) {
       self._eventsRegistry['autoconnect.finished'] = function (msg) {
