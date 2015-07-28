@@ -16,7 +16,7 @@
     "url": "lib/xcraft-core-busclient"
   },
   "dependencies": {
-    "axon": "^2.0.1",
+    "axon": "^2.0.2",
     "xcraft-core-bus": "0.1.0",
     "xcraft-core-etc": "0.1.0",
     "xcraft-core-log": "0.1.0"
