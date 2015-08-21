@@ -91,7 +91,7 @@ function BusClient (busConfig) {
  * support for user authentication.
  *
  * @param {string} [busToken]
- * @param {Function(err)} callback
+ * @param {function(err)} callback
  */
 BusClient.prototype.connect = function (busToken, callback) {
   var self = this;
@@ -153,7 +153,7 @@ BusClient.prototype.connect = function (busToken, callback) {
 /**
  * Close the connections on the buses.
  *
- * @param {Function(err)} callback
+ * @param {function(err)} callback
  */
 BusClient.prototype.stop = function (callback) {
   var self = this;
