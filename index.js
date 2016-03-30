@@ -14,7 +14,7 @@ var globalBusClient = null;
 function BusClient (busConfig) {
   var self = this;
 
-  self._busConfig = busConfig ? busConfig : require ('xcraft-core-etc').load ('xcraft-core-bus');
+  self._busConfig = busConfig ? busConfig : require ('xcraft-core-etc') ().load ('xcraft-core-bus');
 
   self._subSocket  = axon.socket ('sub');
   self._pushSocket = axon.socket ('push');
