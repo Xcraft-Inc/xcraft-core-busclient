@@ -178,13 +178,27 @@ BusClient.prototype.stop = function (callback) {
   self._pushSocket.close ();
 };
 
+/**
+ * Return a new empty message for the commands.
+ *
+ * The \p isNested attribute is set when the command is called from the server
+ * side but with an orc name.
+ *
+ * @return {object} the new message.
+ */
 BusClient.prototype.newMessage = function () {
+  const which = this.getStateWhich ();
   return {
     token:     this.getToken (),
-    orcName:   this.getStateWhich (),
+    orcName:   which,
     timestamp: new Date ().toISOString (),
-    data:      {}
+    data:      {},
+    isNested:  !!(this.isServerSide () && which && which !== 'greathall')
   };
+};
+
+BusClient.prototype.isServerSide = function () {
+  return !this._orcName;
 };
 
 BusClient.prototype.getToken = function () {
