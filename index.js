@@ -5,7 +5,7 @@ var moduleName = 'busclient';
 var axon  = require ('axon');
 var async = require ('async');
 
-var xLog   = require ('xcraft-core-log') (moduleName, true);
+var xLog   = require ('xcraft-core-log') (moduleName, null);
 var xUtils = require ('xcraft-core-utils');
 
 var globalBusClient = null;
@@ -186,8 +186,7 @@ BusClient.prototype.stop = function (callback) {
  *
  * @return {object} the new message.
  */
-BusClient.prototype.newMessage = function () {
-  const which = this.getStateWhich ();
+BusClient.prototype.newMessage = function (which) {
   return {
     token:     this.getToken (),
     orcName:   which,
@@ -209,24 +208,6 @@ BusClient.prototype.getOrcName = function () {
   return this._orcName;
 };
 
-BusClient.prototype.getStateWhich = function () {
-  var xBus = require ('xcraft-core-bus');
-
-  /* Client side */
-  if (this._orcName) {
-    return this._orcName;
-  }
-
-  /* Server side */
-  var commander = xBus.getCommander ();
-  if (commander.hasOwnProperty ('getCurrentState')) {
-    var state = commander.getCurrentState ();
-    return state.which;
-  }
-
-  return null;
-};
-
 BusClient.prototype.getEventsRegistry = function () {
   return this._eventsRegistry;
 };
@@ -239,12 +220,72 @@ BusClient.prototype.isConnected = function () {
   return this._connected;
 };
 
-BusClient.prototype.topicModifier = function (topic) {
-  if (/.*::.*/.test (topic)) {
-    return topic;
+BusClient.prototype.newResponse = function () {
+  return exports.newResponse.apply (this, arguments);
+};
+
+exports.newResponse = function (moduleName, orcName) {
+  let self = null;
+  if (this instanceof BusClient) {
+    self = this;
   }
 
-  return this.getStateWhich () + '::' + topic;
+  const response = {};
+  const log = require ('xcraft-core-log') (moduleName, null);
+
+  response.events = {
+    catchAll: function () {
+      if (!self) {
+        log.err ('events.catchAll not available');
+        return;
+      }
+      self.events.catchAll.apply (self.events, arguments);
+    },
+    subscribe: function () {
+      if (!self) {
+        log.err ('events.subscribe not available');
+        return;
+      }
+      self.events.subscribe.apply (self.events, arguments);
+    },
+    unsubscribe: function () {
+      if (!self) {
+        log.err ('events.unsubscribe not available');
+        return;
+      }
+      self.events.unsubscribe.apply (self.events, arguments);
+    },
+    send: function (topic, data) {
+      if (!self) {
+        log.err ('events.send not available');
+        return;
+      }
+
+      if (!/.*::.*/.test (topic)) {
+        topic = `${orcName}::${topic}`;
+      }
+
+      self.events.send (topic, data);
+    },
+    status: self && self.events.status || {}
+  };
+  response.command = {
+    send: function (cmd, data, finishHandler) {
+      if (!self) {
+        log.err ('command.send not available');
+        return;
+      }
+
+      self.command.send (cmd, data, orcName, finishHandler);
+    }
+  };
+  response.isConnected = function () {
+    return self ? self.isConnected () : false;
+  };
+  response.log = log;
+  response.log.setResponse (response);
+
+  return response;
 };
 
 exports.initGlobal = function () {
