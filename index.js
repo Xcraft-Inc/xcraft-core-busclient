@@ -241,19 +241,29 @@ exports.newResponse = function (moduleName, orcName) {
       }
       self.events.catchAll.apply (self.events, arguments);
     },
-    subscribe: function () {
+    subscribe: function (topic, handler) {
       if (!self) {
         log.err ('events.subscribe not available');
         return;
       }
-      self.events.subscribe.apply (self.events, arguments);
+
+      if (!/.*::.*/.test (topic)) {
+        topic = `${orcName}::${topic}`;
+      }
+
+      self.events.subscribe (topic, handler);
     },
-    unsubscribe: function () {
+    unsubscribe: function (topic) {
       if (!self) {
         log.err ('events.unsubscribe not available');
         return;
       }
-      self.events.unsubscribe.apply (self.events, arguments);
+
+      if (!/.*::.*/.test (topic)) {
+        topic = `${orcName}::${topic}`;
+      }
+
+      self.events.unsubscribe (topic);
     },
     send: function (topic, data) {
       if (!self) {
