@@ -8,6 +8,8 @@ var async = require ('async');
 var xLog   = require ('xcraft-core-log') (moduleName, null);
 var xUtils = require ('xcraft-core-utils');
 
+const Resp = require ('./lib/resp.js');
+
 var globalBusClient = null;
 
 
@@ -230,72 +232,7 @@ exports.newResponse = function (moduleName, orcName) {
     self = this;
   }
 
-  const response = {};
-  const log = require ('xcraft-core-log') (moduleName, null);
-
-  response.events = {
-    catchAll: function () {
-      if (!self) {
-        log.err ('events.catchAll not available');
-        return;
-      }
-      self.events.catchAll.apply (self.events, arguments);
-    },
-    subscribe: function (topic, handler) {
-      if (!self) {
-        log.err ('events.subscribe not available');
-        return;
-      }
-
-      if (!/.*::.*/.test (topic)) {
-        topic = `${orcName}::${topic}`;
-      }
-
-      self.events.subscribe (topic, handler);
-    },
-    unsubscribe: function (topic) {
-      if (!self) {
-        log.err ('events.unsubscribe not available');
-        return;
-      }
-
-      if (!/.*::.*/.test (topic)) {
-        topic = `${orcName}::${topic}`;
-      }
-
-      self.events.unsubscribe (topic);
-    },
-    send: function (topic, data) {
-      if (!self) {
-        log.err ('events.send not available');
-        return;
-      }
-
-      if (!/.*::.*/.test (topic)) {
-        topic = `${orcName}::${topic}`;
-      }
-
-      self.events.send (topic, data);
-    },
-    status: self && self.events.status || {}
-  };
-  response.command = {
-    send: function (cmd, data, finishHandler) {
-      if (!self) {
-        log.err ('command.send not available');
-        return;
-      }
-
-      self.command.send (cmd, data, orcName, finishHandler);
-    }
-  };
-  response.isConnected = function () {
-    return self ? self.isConnected () : false;
-  };
-  response.log = log;
-  response.log.setResponse (response);
-
-  return response;
+  return new Resp (self, moduleName, orcName);
 };
 
 exports.initGlobal = function () {
