@@ -1,6 +1,6 @@
 {
   "name": "xcraft-core-busclient",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Xcraft bus client",
   "main": "index.js",
   "engines": {
@@ -20,10 +20,10 @@
   },
   "dependencies": {
     "axon": "^2.0.2",
-    "xcraft-core-bus": "0.1.0",
-    "xcraft-core-etc": "0.1.0",
-    "xcraft-core-log": "0.1.0",
-    "xcraft-core-utils": "0.1.0"
+    "xcraft-core-bus": "^1.0.0",
+    "xcraft-core-etc": "^1.0.0",
+    "xcraft-core-log": "^1.0.0",
+    "xcraft-core-utils": "^1.0.0"
   },
   "author": "Mathieu Schroeter & Samuel Loup",
   "license": "MIT",
