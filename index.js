@@ -2,32 +2,33 @@
 
 var moduleName = 'busclient';
 
-var axon  = require ('axon');
+var axon = require ('axon');
 var async = require ('async');
 
-var xLog   = require ('xcraft-core-log') (moduleName, null);
+var xLog = require ('xcraft-core-log') (moduleName, null);
 var xUtils = require ('xcraft-core-utils');
 
 const Resp = require ('./lib/resp.js');
 
 var globalBusClient = null;
 
-
 function BusClient (busConfig) {
   var self = this;
 
-  self._busConfig = busConfig ? busConfig : require ('xcraft-core-etc') ().load ('xcraft-core-bus');
+  self._busConfig = busConfig
+    ? busConfig
+    : require ('xcraft-core-etc') ().load ('xcraft-core-bus');
 
-  self._subSocket  = axon.socket ('sub');
+  self._subSocket = axon.socket ('sub');
   self._pushSocket = axon.socket ('push');
 
-  self._eventsRegistry   = {};
+  self._eventsRegistry = {};
   self._commandsRegistry = {};
 
-  self._token       = 'invalid';
-  self._orcName     = null;
+  self._token = 'invalid';
+  self._orcName = null;
   self._autoconnect = false;
-  self._connected   = false;
+  self._connected = false;
 
   var Events = require ('./lib/events.js');
   self.events = new Events (self, self._subSocket);
@@ -38,7 +39,7 @@ function BusClient (busConfig) {
   var autoConnectToken = '';
 
   self._subSocket.subscribe ('greathall::*'); /* broadcasted by server */
-  self._subSocket.subscribe ('gameover');     /* broadcasted by bus */
+  self._subSocket.subscribe ('gameover'); /* broadcasted by bus */
 
   self._subSocket.on ('message', function (topic, msg) {
     if (topic === 'gameover') {
@@ -63,7 +64,10 @@ function BusClient (busConfig) {
       return;
     }
 
-    if (!self._connected && topic === autoConnectToken + '::autoconnect.finished') {
+    if (
+      !self._connected &&
+      topic === autoConnectToken + '::autoconnect.finished'
+    ) {
       self._connected = true;
       self._subSocket.unsubscribe (autoConnectToken + '::autoconnect.finished');
       self._eventsRegistry['autoconnect.finished'] (msg);
@@ -99,57 +103,68 @@ BusClient.prototype.connect = function (busToken, callback) {
   var self = this;
 
   /* Save bus token for checking. */
-  async.parallel ([
-    function (callback) {
-      self._subSocket
-        .on ('connect', function () {
-          xLog.verb ('Bus client subscribed to notifications bus');
-          callback ();
-        })
-        .on ('error', callback);
-    },
-    function (callback) {
-      self._pushSocket
-        .on ('connect', function () {
-          xLog.verb ('Bus client ready to send on command bus');
-          callback ();
-        })
-        .on ('error', callback);
-    }
-  ], function (err) {
-    if (err) {
-      callback (err);
-      return;
-    }
-
-    /* TODO: Explain auto-connect mecha */
-    if (!busToken) {
-      self._eventsRegistry['autoconnect.finished'] = function (msg) {
-        self._token            = msg.data.token;
-        self._orcName          = msg.data.orcName;
-        self._commandsRegistry = msg.data.cmdRegistry;
-
-        xLog.info (self._orcName + ' is serving ' + self._token + ' Great Hall');
-
-        if (self._orcName) {
-          self._subSocket.subscribe (self._orcName + '::*');
-        }
-
+  async.parallel (
+    [
+      function (callback) {
+        self._subSocket
+          .on ('connect', function () {
+            xLog.verb ('Bus client subscribed to notifications bus');
+            callback ();
+          })
+          .on ('error', callback);
+      },
+      function (callback) {
+        self._pushSocket
+          .on ('connect', function () {
+            xLog.verb ('Bus client ready to send on command bus');
+            callback ();
+          })
+          .on ('error', callback);
+      },
+    ],
+    function (err) {
+      if (err) {
         callback (err);
-      };
+        return;
+      }
 
-      self._autoconnect = true;
-      /* Autoconnect is sent when the server is ready (heartbeat). */
-    } else {
-      self._connected = true;
-      self._token = busToken;
-      xLog.verb ('Connected with token: ' + self._token);
-      callback (err);
+      /* TODO: Explain auto-connect mecha */
+      if (!busToken) {
+        self._eventsRegistry['autoconnect.finished'] = function (msg) {
+          self._token = msg.data.token;
+          self._orcName = msg.data.orcName;
+          self._commandsRegistry = msg.data.cmdRegistry;
+
+          xLog.info (
+            self._orcName + ' is serving ' + self._token + ' Great Hall'
+          );
+
+          if (self._orcName) {
+            self._subSocket.subscribe (self._orcName + '::*');
+          }
+
+          callback (err);
+        };
+
+        self._autoconnect = true;
+        /* Autoconnect is sent when the server is ready (heartbeat). */
+      } else {
+        self._connected = true;
+        self._token = busToken;
+        xLog.verb ('Connected with token: ' + self._token);
+        callback (err);
+      }
     }
-  });
+  );
 
-  self._subSocket.connect (parseInt (self._busConfig.notifierPort), self._busConfig.host);
-  self._pushSocket.connect (parseInt (self._busConfig.commanderPort), self._busConfig.host);
+  self._subSocket.connect (
+    parseInt (self._busConfig.notifierPort),
+    self._busConfig.host
+  );
+  self._pushSocket.connect (
+    parseInt (self._busConfig.commanderPort),
+    self._busConfig.host
+  );
 };
 
 /**
@@ -160,19 +175,22 @@ BusClient.prototype.connect = function (busToken, callback) {
 BusClient.prototype.stop = function (callback) {
   var self = this;
 
-  async.parallel ([
-    function (callback) {
-      self._subSocket.on ('close', callback);
-    },
-    function (callback) {
-      self._pushSocket.on ('close', callback);
+  async.parallel (
+    [
+      function (callback) {
+        self._subSocket.on ('close', callback);
+      },
+      function (callback) {
+        self._pushSocket.on ('close', callback);
+      },
+    ],
+    function (err) {
+      xLog.verb ('Stopped');
+      if (callback) {
+        callback (err);
+      }
     }
-  ], function (err) {
-    xLog.verb ('Stopped');
-    if (callback) {
-      callback (err);
-    }
-  });
+  );
 
   xLog.verb ('Stopping...');
   self._connected = false;
@@ -190,11 +208,11 @@ BusClient.prototype.stop = function (callback) {
  */
 BusClient.prototype.newMessage = function (which) {
   return {
-    token:     this.getToken (),
-    orcName:   which,
+    token: this.getToken (),
+    orcName: which,
     timestamp: new Date ().toISOString (),
-    data:      {},
-    isNested:  !!(this.isServerSide () && which && which !== 'greathall')
+    data: {},
+    isNested: !!(this.isServerSide () && which && which !== 'greathall'),
   };
 };
 
