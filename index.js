@@ -2,17 +2,21 @@
 
 var moduleName = 'busclient';
 
+const util = require ('util');
 var axon = require ('axon');
 var async = require ('async');
 
 var xLog = require ('xcraft-core-log') (moduleName, null);
 var xUtils = require ('xcraft-core-utils');
 
+const {EventEmitter} = require ('events');
 const Resp = require ('./lib/resp.js');
 
 var globalBusClient = null;
 
 function BusClient (busConfig) {
+  EventEmitter.call (this);
+
   var self = this;
 
   self._busConfig = busConfig
@@ -46,6 +50,12 @@ function BusClient (busConfig) {
       xLog.info ('Game Over');
       self._connected = false;
       self.stop ();
+      return;
+    }
+
+    if (topic === 'greathall::bus.commands.registry') {
+      self._commandsRegistry = msg.data;
+      self.emit ('commands.registry');
       return;
     }
 
@@ -88,6 +98,8 @@ function BusClient (busConfig) {
     }
   });
 }
+
+util.inherits (BusClient, EventEmitter);
 
 /**
  * Connect the client to the buses.
