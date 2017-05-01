@@ -2,7 +2,6 @@
 
 var moduleName = 'busclient';
 
-const util = require ('util');
 var axon = require ('axon');
 var async = require ('async');
 
