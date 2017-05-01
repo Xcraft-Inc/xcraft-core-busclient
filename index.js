@@ -17,86 +17,84 @@ class BusClient extends EventEmitter {
   constructor (busConfig) {
     super ();
 
-    var self = this;
-
-    self._busConfig = busConfig
+    this._busConfig = busConfig
       ? busConfig
       : require ('xcraft-core-etc') ().load ('xcraft-core-bus');
 
-    self._subSocket = axon.socket ('sub');
-    self._pushSocket = axon.socket ('push');
+    this._subSocket = axon.socket ('sub');
+    this._pushSocket = axon.socket ('push');
 
-    self._eventsRegistry = {};
-    self._commandsRegistry = {};
+    this._eventsRegistry = {};
+    this._commandsRegistry = {};
 
-    self._token = 'invalid';
-    self._orcName = null;
-    self._autoconnect = false;
-    self._connected = false;
+    this._token = 'invalid';
+    this._orcName = null;
+    this._autoconnect = false;
+    this._connected = false;
 
     var Events = require ('./lib/events.js');
-    self.events = new Events (self, self._subSocket);
+    this.events = new Events (this, this._subSocket);
 
     var Command = require ('./lib/command.js');
-    self.command = new Command (self, self._pushSocket);
+    this.command = new Command (this, this._pushSocket);
 
     var autoConnectToken = '';
 
-    self._subSocket.subscribe ('greathall::*'); /* broadcasted by server */
-    self._subSocket.subscribe ('gameover'); /* broadcasted by bus */
+    this._subSocket.subscribe ('greathall::*'); /* broadcasted by server */
+    this._subSocket.subscribe ('gameover'); /* broadcasted by bus */
 
-    self._subSocket.on ('message', function (topic, msg) {
+    this._subSocket.on ('message', (topic, msg) => {
       if (topic === 'gameover') {
         xLog.info ('Game Over');
-        self._connected = false;
-        self.stop ();
+        this._connected = false;
+        this.stop ();
         return;
       }
 
       if (topic === 'greathall::bus.commands.registry') {
-        self._commandsRegistry = msg.data;
-        self.emit ('commands.registry');
+        this._commandsRegistry = msg.data;
+        this.emit ('commands.registry');
         return;
       }
 
-      if (self._autoconnect && topic === 'greathall::heartbeat') {
-        self._autoconnect = false;
-        xUtils.crypto.genToken (function (err, generatedToken) {
+      if (this._autoconnect && topic === 'greathall::heartbeat') {
+        this._autoconnect = false;
+        xUtils.crypto.genToken ((err, generatedToken) => {
           if (err) {
             xLog.err (err);
             return;
           }
           autoConnectToken = generatedToken;
-          self._subSocket.subscribe (
+          this._subSocket.subscribe (
             autoConnectToken + '::autoconnect.finished'
           );
-          self.command.send ('autoconnect', autoConnectToken);
+          this.command.send ('autoconnect', autoConnectToken);
         });
 
         return;
       }
 
       if (
-        !self._connected &&
+        !this._connected &&
         topic === autoConnectToken + '::autoconnect.finished'
       ) {
-        self._connected = true;
-        self._subSocket.unsubscribe (
+        this._connected = true;
+        this._subSocket.unsubscribe (
           autoConnectToken + '::autoconnect.finished'
         );
-        self._eventsRegistry['autoconnect.finished'] (msg);
-        delete self._eventsRegistry['autoconnect.finished'];
+        this._eventsRegistry['autoconnect.finished'] (msg);
+        delete this._eventsRegistry['autoconnect.finished'];
         return;
       }
 
-      if (!self._eventsRegistry.hasOwnProperty (topic)) {
+      if (!this._eventsRegistry.hasOwnProperty (topic)) {
         return;
       }
 
       xLog.verb ('notification received: %s', topic);
 
-      if (msg.token === self._token) {
-        self._eventsRegistry[topic] (msg);
+      if (msg.token === this._token) {
+        this._eventsRegistry[topic] (msg);
       } else {
         xLog.verb ('invalid token, event discarded');
       }
@@ -114,29 +112,27 @@ class BusClient extends EventEmitter {
    * @param {function(err)} callback
    */
   connect (busToken, callback) {
-    var self = this;
-
     /* Save bus token for checking. */
     async.parallel (
       [
-        function (callback) {
-          self._subSocket
-            .on ('connect', function () {
+        callback => {
+          this._subSocket
+            .on ('connect', () => {
               xLog.verb ('Bus client subscribed to notifications bus');
               callback ();
             })
             .on ('error', callback);
         },
-        function (callback) {
-          self._pushSocket
-            .on ('connect', function () {
+        callback => {
+          this._pushSocket
+            .on ('connect', () => {
               xLog.verb ('Bus client ready to send on command bus');
               callback ();
             })
             .on ('error', callback);
         },
       ],
-      function (err) {
+      err => {
         if (err) {
           callback (err);
           return;
@@ -144,40 +140,40 @@ class BusClient extends EventEmitter {
 
         /* TODO: Explain auto-connect mecha */
         if (!busToken) {
-          self._eventsRegistry['autoconnect.finished'] = function (msg) {
-            self._token = msg.data.token;
-            self._orcName = msg.data.orcName;
-            self._commandsRegistry = msg.data.cmdRegistry;
+          this._eventsRegistry['autoconnect.finished'] = msg => {
+            this._token = msg.data.token;
+            this._orcName = msg.data.orcName;
+            this._commandsRegistry = msg.data.cmdRegistry;
 
             xLog.info (
-              self._orcName + ' is serving ' + self._token + ' Great Hall'
+              this._orcName + ' is serving ' + this._token + ' Great Hall'
             );
 
-            if (self._orcName) {
-              self._subSocket.subscribe (self._orcName + '::*');
+            if (this._orcName) {
+              this._subSocket.subscribe (this._orcName + '::*');
             }
 
             callback (err);
           };
 
-          self._autoconnect = true;
+          this._autoconnect = true;
           /* Autoconnect is sent when the server is ready (heartbeat). */
         } else {
-          self._connected = true;
-          self._token = busToken;
-          xLog.verb ('Connected with token: ' + self._token);
+          this._connected = true;
+          this._token = busToken;
+          xLog.verb ('Connected with token: ' + this._token);
           callback (err);
         }
       }
     );
 
-    self._subSocket.connect (
-      parseInt (self._busConfig.notifierPort),
-      self._busConfig.host
+    this._subSocket.connect (
+      parseInt (this._busConfig.notifierPort),
+      this._busConfig.host
     );
-    self._pushSocket.connect (
-      parseInt (self._busConfig.commanderPort),
-      self._busConfig.host
+    this._pushSocket.connect (
+      parseInt (this._busConfig.commanderPort),
+      this._busConfig.host
     );
   }
 
@@ -187,18 +183,16 @@ class BusClient extends EventEmitter {
    * @param {function(err)} callback
    */
   stop (callback) {
-    var self = this;
-
     async.parallel (
       [
-        function (callback) {
-          self._subSocket.on ('close', callback);
+        callback => {
+          this._subSocket.on ('close', callback);
         },
-        function (callback) {
-          self._pushSocket.on ('close', callback);
+        callback => {
+          this._pushSocket.on ('close', callback);
         },
       ],
-      function (err) {
+      err => {
         xLog.verb ('Stopped');
         if (callback) {
           callback (err);
@@ -207,9 +201,9 @@ class BusClient extends EventEmitter {
     );
 
     xLog.verb ('Stopping...');
-    self._connected = false;
-    self._subSocket.close ();
-    self._pushSocket.close ();
+    this._connected = false;
+    this._subSocket.close ();
+    this._pushSocket.close ();
   }
 
   /**
