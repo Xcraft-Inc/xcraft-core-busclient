@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "axon": "^2.0.2",
+    "uuid": "^3.0.1",
     "xcraft-core-bus": "^1.0.0",
     "xcraft-core-etc": "^1.0.0",
     "xcraft-core-log": "^1.0.0",

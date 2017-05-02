@@ -3,7 +3,7 @@
 const moduleName = 'busclient';
 
 const axon = require ('axon');
-const async = require ('async');
+const uuidV4 = require ('uuid/v4');
 
 const xLog = require ('xcraft-core-log') (moduleName, null);
 const xUtils = require ('xcraft-core-utils');
@@ -46,26 +46,67 @@ class BusClient extends EventEmitter {
     this._subSocket.subscribe ('gameover'); /* broadcasted by bus */
 
     this._onCloseSubscribers = {};
+    this._onConnectSubscribers = {};
 
     const onClosed = err => {
       if (!this._subClosed || !this._pushClosed) {
         return;
       }
 
-      xLog.verb ('Stopped');
-      Object.keys (this._onCloseSubscribers).forEach (callback =>
-        callback (err)
+      if (!err) {
+        xLog.verb ('Stopped');
+      }
+
+      Object.keys (this._onCloseSubscribers).forEach (key =>
+        this._onCloseSubscribers[key].callback (err)
       );
     };
 
-    this._subSocket.on ('close', err => {
-      this._subClosed = true;
-      onClosed (err);
-    });
-    this._pushSocket.on ('close', err => {
-      this._pushClosed = true;
-      onClosed (err);
-    });
+    const onConnected = err => {
+      if (this._subClosed || this._pushClosed) {
+        return;
+      }
+
+      if (!err) {
+        xLog.verb ('Connected');
+      }
+      console.dir (this._onConnectSubscribers);
+      Object.keys (this._onConnectSubscribers).forEach (key =>
+        this._onConnectSubscribers[key].callback (err)
+      );
+    };
+
+    this._subSocket
+      .on ('close', err => {
+        this._subClosed = true;
+        onClosed (err);
+      })
+      .on ('connect', () => {
+        xLog.verb ('Bus client subscribed to notifications bus');
+        this._subClosed = false;
+        onConnected ();
+      })
+      .on ('error', err => {
+        this._subClosed = true;
+        onClosed (err);
+        onConnected (err);
+      });
+
+    this._pushSocket
+      .on ('close', err => {
+        this._pushClosed = true;
+        onClosed (err);
+      })
+      .on ('connect', () => {
+        xLog.verb ('Bus client ready to send on command bus');
+        this._pushClosed = false;
+        onConnected ();
+      })
+      .on ('error', err => {
+        this._pushClosed = true;
+        onClosed (err);
+        onConnected (err);
+      });
 
     this._subSocket.on ('message', (topic, msg) => {
       if (topic === 'gameover') {
@@ -126,10 +167,25 @@ class BusClient extends EventEmitter {
   }
 
   _subscribeClose (callback) {
-    this._onCloseSubscribers[callback] = () => {
-      delete this._onCloseSubscribers[callback];
+    const key = uuidV4 ();
+    this._onCloseSubscribers[key] = {
+      callback,
+      unsubscribe: () => {
+        delete this._onCloseSubscribers[key];
+      },
     };
-    return this._onCloseSubscribers[callback];
+    return this._onCloseSubscribers[key].unsubscribe;
+  }
+
+  _subscribeConnect (callback) {
+    const key = uuidV4 ();
+    this._onConnectSubscribers[key] = {
+      callback,
+      unsubscribe: () => {
+        delete this._onConnectSubscribers[key];
+      },
+    };
+    return this._onConnectSubscribers[key].unsubscribe;
   }
 
   /**
@@ -143,65 +199,45 @@ class BusClient extends EventEmitter {
    * @param {function(err)} callback
    */
   connect (busToken, callback) {
-    /* Save bus token for checking. */
-    async.parallel (
-      [
-        callback => {
-          this._subSocket
-            .on ('connect', () => {
-              xLog.verb ('Bus client subscribed to notifications bus');
-              callback ();
-            })
-            .on ('error', callback);
-        },
-        callback => {
-          this._pushSocket
-            .on ('connect', () => {
-              xLog.verb ('Bus client ready to send on command bus');
-              callback ();
-            })
-            .on ('error', callback);
-        },
-      ],
-      err => {
-        if (err) {
-          callback (err);
-          return;
-        }
+    xLog.verb ('Connecting...');
 
-        /* TODO: Explain auto-connect mecha */
-        if (!busToken) {
-          this._eventsRegistry['autoconnect.finished'] = msg => {
-            this._token = msg.data.token;
-            this._orcName = msg.data.orcName;
-            this._commandsRegistry = msg.data.cmdRegistry;
+    const unsubscribe = this._subscribeConnect (err => {
+      unsubscribe ();
 
-            xLog.info (
-              this._orcName + ' is serving ' + this._token + ' Great Hall'
-            );
-
-            if (this._orcName) {
-              this._subSocket.subscribe (this._orcName + '::*');
-            }
-
-            this._subClosed = false;
-            this._pushClosed = false;
-            callback (err);
-          };
-
-          this._autoconnect = true;
-          /* Autoconnect is sent when the server is ready (heartbeat). */
-        } else {
-          this._connected = true;
-          this._token = busToken;
-          xLog.verb ('Connected with token: ' + this._token);
-
-          this._subClosed = false;
-          this._pushClosed = false;
-          callback (err);
-        }
+      if (err) {
+        callback (err);
+        return;
       }
-    );
+
+      /* TODO: Explain auto-connect mecha */
+      if (!busToken) {
+        this._eventsRegistry['autoconnect.finished'] = msg => {
+          this._token = msg.data.token;
+          this._orcName = msg.data.orcName;
+          this._commandsRegistry = msg.data.cmdRegistry;
+
+          xLog.info (
+            this._orcName + ' is serving ' + this._token + ' Great Hall'
+          );
+
+          if (this._orcName) {
+            this._subSocket.subscribe (this._orcName + '::*');
+          }
+
+          callback (err);
+        };
+
+        this._autoconnect = true;
+        /* Autoconnect is sent when the server is ready (heartbeat). */
+        return;
+      }
+
+      this._connected = true;
+      this._token = busToken;
+      xLog.verb ('Connected with token: ' + this._token);
+
+      callback (err);
+    });
 
     this._subSocket.connect (
       parseInt (this._busConfig.notifierPort),
@@ -221,11 +257,14 @@ class BusClient extends EventEmitter {
   stop (callback) {
     xLog.verb ('Stopping...');
 
-    const unsubscribe = this._subscribeClose (callback);
+    const unsubscribe = this._subscribeClose (err => {
+      unsubscribe ();
+      callback (err);
+    });
+
     this._connected = false;
     this._subSocket.close ();
     this._pushSocket.close ();
-    unsubscribe ();
   }
 
   /**
