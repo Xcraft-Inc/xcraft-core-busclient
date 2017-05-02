@@ -136,6 +136,7 @@ class BusClient extends EventEmitter {
 
       if (this._autoconnect && topic === 'greathall::heartbeat') {
         this._autoconnect = false;
+
         xUtils.crypto.genToken ((err, generatedToken) => {
           if (err) {
             xLog.err (err);
