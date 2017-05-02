@@ -79,6 +79,8 @@ class BusClient extends EventEmitter {
     const onReconnectAttempt = () => {
       xLog.verb ('Attempt a reconnect');
 
+      this._subSocket.unsubscribe (this._orcName + '::*');
+
       this._connected = false;
       this._autoconnect = true;
       this._token = 'invalid';
