@@ -31,6 +31,8 @@ class BusClient extends EventEmitter {
     this._orcName = null;
     this._autoconnect = false;
     this._connected = false;
+    this._subClosed = true;
+    this._pushClosed = true;
 
     const Events = require ('./lib/events.js');
     this.events = new Events (this, this._subSocket);
@@ -42,6 +44,28 @@ class BusClient extends EventEmitter {
 
     this._subSocket.subscribe ('greathall::*'); /* broadcasted by server */
     this._subSocket.subscribe ('gameover'); /* broadcasted by bus */
+
+    this._onCloseSubscribers = {};
+
+    const onClosed = err => {
+      if (!this._subClosed || !this._pushClosed) {
+        return;
+      }
+
+      xLog.verb ('Stopped');
+      Object.keys (this._onCloseSubscribers).forEach (callback =>
+        callback (err)
+      );
+    };
+
+    this._subSocket.on ('close', err => {
+      this._subClosed = true;
+      onClosed (err);
+    });
+    this._pushSocket.on ('close', err => {
+      this._pushClosed = true;
+      onClosed (err);
+    });
 
     this._subSocket.on ('message', (topic, msg) => {
       if (topic === 'gameover') {
@@ -101,6 +125,13 @@ class BusClient extends EventEmitter {
     });
   }
 
+  _subscribeClose (callback) {
+    this._onCloseSubscribers[callback] = () => {
+      delete this._onCloseSubscribers[callback];
+    };
+    return this._onCloseSubscribers[callback];
+  }
+
   /**
    * Connect the client to the buses.
    *
@@ -153,6 +184,8 @@ class BusClient extends EventEmitter {
               this._subSocket.subscribe (this._orcName + '::*');
             }
 
+            this._subClosed = false;
+            this._pushClosed = false;
             callback (err);
           };
 
@@ -162,6 +195,9 @@ class BusClient extends EventEmitter {
           this._connected = true;
           this._token = busToken;
           xLog.verb ('Connected with token: ' + this._token);
+
+          this._subClosed = false;
+          this._pushClosed = false;
           callback (err);
         }
       }
@@ -183,27 +219,13 @@ class BusClient extends EventEmitter {
    * @param {function(err)} callback
    */
   stop (callback) {
-    async.parallel (
-      [
-        callback => {
-          this._subSocket.on ('close', callback);
-        },
-        callback => {
-          this._pushSocket.on ('close', callback);
-        },
-      ],
-      err => {
-        xLog.verb ('Stopped');
-        if (callback) {
-          callback (err);
-        }
-      }
-    );
-
     xLog.verb ('Stopping...');
+
+    const unsubscribe = this._subscribeClose (callback);
     this._connected = false;
     this._subSocket.close ();
     this._pushSocket.close ();
+    unsubscribe ();
   }
 
   /**
