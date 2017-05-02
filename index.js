@@ -85,7 +85,9 @@ class BusClient extends EventEmitter {
       this._autoconnect = true;
       this._token = 'invalid';
       this._orcName = null;
-      this._registerAutoconnect ();
+      this._registerAutoconnect (() => {
+        this.emit ('reconnect');
+      });
     };
 
     this._subSocket
