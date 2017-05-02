@@ -70,7 +70,7 @@ class BusClient extends EventEmitter {
       if (!err) {
         xLog.verb ('Connected');
       }
-      console.dir (this._onConnectSubscribers);
+
       Object.keys (this._onConnectSubscribers).forEach (key =>
         this._onConnectSubscribers[key].callback (err)
       );
