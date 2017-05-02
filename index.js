@@ -76,6 +76,16 @@ class BusClient extends EventEmitter {
       );
     };
 
+    const onReconnectAttempt = () => {
+      xLog.verb ('Attempt a reconnect');
+
+      this._connected = false;
+      this._autoconnect = true;
+      this._token = 'invalid';
+      this._orcName = null;
+      this._registerAutoconnect ();
+    };
+
     this._subSocket
       .on ('close', err => {
         this._subClosed = true;
@@ -90,7 +100,8 @@ class BusClient extends EventEmitter {
         this._subClosed = true;
         onClosed (err);
         onConnected (err);
-      });
+      })
+      .on ('reconnect attempt', onReconnectAttempt);
 
     this._pushSocket
       .on ('close', err => {
@@ -106,7 +117,8 @@ class BusClient extends EventEmitter {
         this._pushClosed = true;
         onClosed (err);
         onConnected (err);
-      });
+      })
+      .on ('reconnect attempt', onReconnectAttempt);
 
     this._subSocket.on ('message', (topic, msg) => {
       if (topic === 'gameover') {
@@ -166,6 +178,24 @@ class BusClient extends EventEmitter {
     });
   }
 
+  _registerAutoconnect (callback, err) {
+    this._eventsRegistry['autoconnect.finished'] = msg => {
+      this._token = msg.data.token;
+      this._orcName = msg.data.orcName;
+      this._commandsRegistry = msg.data.cmdRegistry;
+
+      xLog.info (this._orcName + ' is serving ' + this._token + ' Great Hall');
+
+      if (this._orcName) {
+        this._subSocket.subscribe (this._orcName + '::*');
+      }
+
+      if (callback) {
+        callback (err);
+      }
+    };
+  }
+
   _subscribeClose (callback) {
     const key = uuidV4 ();
     this._onCloseSubscribers[key] = {
@@ -211,24 +241,9 @@ class BusClient extends EventEmitter {
 
       /* TODO: Explain auto-connect mecha */
       if (!busToken) {
-        this._eventsRegistry['autoconnect.finished'] = msg => {
-          this._token = msg.data.token;
-          this._orcName = msg.data.orcName;
-          this._commandsRegistry = msg.data.cmdRegistry;
-
-          xLog.info (
-            this._orcName + ' is serving ' + this._token + ' Great Hall'
-          );
-
-          if (this._orcName) {
-            this._subSocket.subscribe (this._orcName + '::*');
-          }
-
-          callback (err);
-        };
-
-        this._autoconnect = true;
         /* Autoconnect is sent when the server is ready (heartbeat). */
+        this._registerAutoconnect (callback, err);
+        this._autoconnect = true;
         return;
       }
 
