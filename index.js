@@ -1,17 +1,17 @@
 'use strict';
 
-var moduleName = 'busclient';
+const moduleName = 'busclient';
 
-var axon = require ('axon');
-var async = require ('async');
+const axon = require ('axon');
+const async = require ('async');
 
-var xLog = require ('xcraft-core-log') (moduleName, null);
-var xUtils = require ('xcraft-core-utils');
+const xLog = require ('xcraft-core-log') (moduleName, null);
+const xUtils = require ('xcraft-core-utils');
 
 const {EventEmitter} = require ('events');
 const Resp = require ('./lib/resp.js');
 
-var globalBusClient = null;
+let globalBusClient = null;
 
 class BusClient extends EventEmitter {
   constructor (busConfig) {
@@ -32,13 +32,13 @@ class BusClient extends EventEmitter {
     this._autoconnect = false;
     this._connected = false;
 
-    var Events = require ('./lib/events.js');
+    const Events = require ('./lib/events.js');
     this.events = new Events (this, this._subSocket);
 
-    var Command = require ('./lib/command.js');
+    const Command = require ('./lib/command.js');
     this.command = new Command (this, this._pushSocket);
 
-    var autoConnectToken = '';
+    let autoConnectToken = '';
 
     this._subSocket.subscribe ('greathall::*'); /* broadcasted by server */
     this._subSocket.subscribe ('gameover'); /* broadcasted by bus */
