@@ -279,7 +279,9 @@ class BusClient extends EventEmitter {
 
     const unsubscribe = this._subscribeClose (err => {
       unsubscribe ();
-      callback (err);
+      if (callback) {
+        callback (err);
+      }
     });
 
     this._connected = false;
