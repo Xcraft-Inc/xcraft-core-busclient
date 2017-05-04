@@ -226,9 +226,11 @@ class BusClient extends EventEmitter {
   /**
    * Connect the client to the buses.
    *
-   * If the bus is not known, the argument can be null, then the client tries
-   * to autoconnect to the server. It's a trivial mechanism, there is no
-   * support for user authentication.
+   * When the busToken is null, the client tries to autoconnect to the server.
+   * It's a trivial mechanism, there is no support for user authentication.
+   *
+   * The busToken must be passed only when BusClient is used on the server
+   * side. In all other cases, the argument _must_ be null.
    *
    * @param {string} [busToken]
    * @param {function(err)} callback
