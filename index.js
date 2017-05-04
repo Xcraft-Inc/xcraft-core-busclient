@@ -17,9 +17,7 @@ class BusClient extends EventEmitter {
   constructor (busConfig) {
     super ();
 
-    this._busConfig = busConfig
-      ? busConfig
-      : require ('xcraft-core-etc') ().load ('xcraft-core-bus');
+    this._busConfig = busConfig; /* can be null */
 
     this._subSocket = axon.socket ('sub');
     this._pushSocket = axon.socket ('push');
@@ -261,13 +259,15 @@ class BusClient extends EventEmitter {
       callback (err);
     });
 
-    this._subSocket.connect (
-      parseInt (this._busConfig.notifierPort),
-      this._busConfig.host
-    );
+    let busConfig = this._busConfig;
+    if (!busConfig) {
+      busConfig = require ('xcraft-core-etc') ().load ('xcraft-core-bus');
+    }
+
+    this._subSocket.connect (parseInt (busConfig.notifierPort), busConfig.host);
     this._pushSocket.connect (
-      parseInt (this._busConfig.commanderPort),
-      this._busConfig.host
+      parseInt (busConfig.commanderPort),
+      busConfig.host
     );
   }
 
