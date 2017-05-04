@@ -178,7 +178,7 @@ class BusClient extends EventEmitter {
       if (msg.token === this._token) {
         this._eventsRegistry[topic] (msg);
       } else {
-        xLog.verb ('invalid token, event discarded');
+        xLog.info ('invalid token, event discarded');
       }
     });
   }
