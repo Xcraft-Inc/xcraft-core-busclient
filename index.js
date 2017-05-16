@@ -171,7 +171,7 @@ class BusClient extends EventEmitter {
 
       if (!this._eventsRegistry.hasOwnProperty (topic)) {
         if (topic !== 'greathall::heartbeat') {
-          xLog.warn (
+          xLog.info (
             `event sent on ${topic} discarded (no subscriber, current orc: ${orcName})`
           );
         }
