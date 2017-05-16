@@ -167,7 +167,14 @@ class BusClient extends EventEmitter {
         return;
       }
 
+      const orcName = this.getOrcName () || 'greathall';
+
       if (!this._eventsRegistry.hasOwnProperty (topic)) {
+        if (topic !== 'greathall::heartbeat') {
+          xLog.warn (
+            `event sent on ${topic} discarded (no subscriber, current orc: ${orcName})`
+          );
+        }
         return;
       }
 
