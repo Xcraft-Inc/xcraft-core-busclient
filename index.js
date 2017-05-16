@@ -178,7 +178,7 @@ class BusClient extends EventEmitter {
         return;
       }
 
-      xLog.verb ('notification received: %s', topic);
+      xLog.verb (`notification received: ${topic} for ${orcName}`);
 
       if (msg.token === this._token) {
         this._eventsRegistry[topic] (msg);
