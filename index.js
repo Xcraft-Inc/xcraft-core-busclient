@@ -2,7 +2,7 @@
 
 const moduleName = 'busclient';
 
-const axon = require ('axon');
+const {Router} = require ('xcraft-core-transport');
 const uuidV4 = require ('uuid/v4');
 
 const xLog = require ('xcraft-core-log') (moduleName, null);
@@ -19,8 +19,8 @@ class BusClient extends EventEmitter {
 
     this._busConfig = busConfig; /* can be null */
 
-    this._subSocket = axon.socket ('sub');
-    this._pushSocket = axon.socket ('push');
+    this._subSocket = new Router ('sub', xLog);
+    this._pushSocket = new Router ('push', xLog);
 
     this._eventsRegistry = {};
     this._commandsRegistry = {};
