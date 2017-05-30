@@ -52,7 +52,7 @@ class BusClient extends EventEmitter {
       }
 
       if (!err) {
-        xLog.verb ('Stopped');
+        xLog.verb (`bus stopped for ${this._orcName || 'greathall'}`);
       }
 
       Object.keys (this._onCloseSubscribers).forEach (key =>
@@ -290,7 +290,7 @@ class BusClient extends EventEmitter {
    * @param {function(err)} callback
    */
   stop (callback) {
-    xLog.verb ('Stopping...');
+    xLog.verb (`Stopping for ${this._orcName || 'greathall'}...`);
 
     const unsubscribe = this._subscribeClose (err => {
       unsubscribe ();
