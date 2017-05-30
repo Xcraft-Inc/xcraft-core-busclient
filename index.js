@@ -300,8 +300,8 @@ class BusClient extends EventEmitter {
     });
 
     this._connected = false;
-    this._subSocket.close ();
-    this._pushSocket.close ();
+    this._subSocket.stop ();
+    this._pushSocket.stop ();
   }
 
   /**
