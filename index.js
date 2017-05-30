@@ -237,10 +237,11 @@ class BusClient extends EventEmitter {
    * The busToken must be passed only when BusClient is used on the server
    * side. In all other cases, the argument _must_ be null.
    *
-   * @param {string} [busToken]
+   * @param {string} backend
+   * @param {string} busToken
    * @param {function(err)} callback
    */
-  connect (busToken, callback) {
+  connect (backend, busToken, callback) {
     xLog.verb ('Connecting...');
 
     const unsubscribe = this._subscribeConnect (err => {
@@ -271,8 +272,13 @@ class BusClient extends EventEmitter {
       busConfig = require ('xcraft-core-etc') ().load ('xcraft-core-bus');
     }
 
-    this._subSocket.connect (parseInt (busConfig.notifierPort), busConfig.host);
+    this._subSocket.connect (
+      backend,
+      parseInt (busConfig.notifierPort),
+      busConfig.host
+    );
     this._pushSocket.connect (
+      backend,
       parseInt (busConfig.commanderPort),
       busConfig.host
     );
