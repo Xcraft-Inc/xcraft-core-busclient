@@ -273,7 +273,7 @@ class BusClient extends EventEmitter {
     }
 
     this._subSocket.connect (backend, {
-      post: parseInt (busConfig.notifierPort),
+      port: parseInt (busConfig.notifierPort),
       host: busConfig.host,
     });
     this._pushSocket.connect (backend, {
