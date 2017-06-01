@@ -272,16 +272,14 @@ class BusClient extends EventEmitter {
       busConfig = require ('xcraft-core-etc') ().load ('xcraft-core-bus');
     }
 
-    this._subSocket.connect (
-      backend,
-      parseInt (busConfig.notifierPort),
-      busConfig.host
-    );
-    this._pushSocket.connect (
-      backend,
-      parseInt (busConfig.commanderPort),
-      busConfig.host
-    );
+    this._subSocket.connect (backend, {
+      post: parseInt (busConfig.notifierPort),
+      host: busConfig.host,
+    });
+    this._pushSocket.connect (backend, {
+      port: parseInt (busConfig.commanderPort),
+      host: busConfig.host,
+    });
   }
 
   /**
