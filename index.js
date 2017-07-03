@@ -310,11 +310,13 @@ class BusClient extends EventEmitter {
    *
    * @return {object} the new message.
    */
-  newMessage (which) {
+  newMessage (topic, which) {
     return {
       token: this.getToken (),
       orcName: which,
       timestamp: new Date ().toISOString (),
+      id: uuidV4 (),
+      topic: topic,
       data: {},
       isNested: !!(this.isServerSide () && which && which !== 'greathall'),
     };
