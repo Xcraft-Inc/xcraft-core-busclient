@@ -1,6 +1,6 @@
 {
   "name": "xcraft-core-busclient",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "description": "Xcraft bus client",
   "main": "index.js",
   "engines": {
@@ -21,7 +21,7 @@
   "dependencies": {
     "axon": "^2.0.2",
     "uuid": "^3.0.1",
-    "xcraft-core-bus": "^1.0.0",
+    "xcraft-core-bus": "^2.0.0",
     "xcraft-core-etc": "^1.2.0",
     "xcraft-core-log": "^1.0.0",
     "xcraft-core-transport": "^0.1.0",
