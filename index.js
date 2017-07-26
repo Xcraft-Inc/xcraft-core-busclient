@@ -162,14 +162,23 @@ class BusClient extends EventEmitter {
         this._subSocket.unsubscribe (
           autoConnectToken + '::autoconnect.finished'
         );
-        this._eventsRegistry['autoconnect.finished'] (msg);
-        delete this._eventsRegistry['autoconnect.finished'];
+        this._eventsRegistry[
+          xUtils.regex.toAxonRegExp ('autoconnect.finished')
+        ] (msg);
+        delete this._eventsRegistry[
+          xUtils.regex.toAxonRegExp ('autoconnect.finished')
+        ];
         return;
       }
 
       const orcName = this.getOrcName () || 'greathall';
 
-      if (!this._eventsRegistry.hasOwnProperty (topic)) {
+      if (
+        !Object.keys (this._eventsRegistry).some (reg => {
+          return new RegExp (reg).test (topic);
+        })
+      ) {
+        // FIXME: add regex support
         if (topic !== 'greathall::heartbeat') {
           xLog.info (
             `event sent on ${topic} discarded (no subscriber, current orc: ${orcName})`
@@ -181,7 +190,7 @@ class BusClient extends EventEmitter {
       xLog.verb (`notification received: ${topic} for ${orcName}`);
 
       if (msg.token === this._token) {
-        this._eventsRegistry[topic] (msg);
+        this._eventsRegistry[xUtils.regex.toAxonRegExp (topic)] (msg);
       } else {
         xLog.info ('invalid token, event discarded');
       }
@@ -189,7 +198,9 @@ class BusClient extends EventEmitter {
   }
 
   _registerAutoconnect (callback, err) {
-    this._eventsRegistry['autoconnect.finished'] = msg => {
+    this._eventsRegistry[
+      xUtils.regex.toAxonRegExp ('autoconnect.finished')
+    ] = msg => {
       this._token = msg.data.token;
       this._orcName = msg.data.orcName;
       this._commandsRegistry = msg.data.cmdRegistry;
