@@ -19,13 +19,13 @@
     "url": "git+https://github.com/Xcraft-Inc/xcraft-core-busclient.git"
   },
   "dependencies": {
-    "axon": "^2.0.2",
-    "uuid": "^3.0.1",
-    "xcraft-core-bus": "^2.0.0",
+    "axon": "^2.0.3",
+    "uuid": "^3.1.0",
+    "xcraft-core-bus": "^2.0.1",
     "xcraft-core-etc": "^1.2.0",
     "xcraft-core-log": "^1.0.0",
-    "xcraft-core-transport": "^1.0.0",
-    "xcraft-core-utils": "^1.0.0"
+    "xcraft-core-transport": "^1.1.0",
+    "xcraft-core-utils": "^1.1.0"
   },
   "author": "Mathieu Schroeter & Samuel Loup",
   "license": "MIT",
