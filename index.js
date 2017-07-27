@@ -173,9 +173,9 @@ class BusClient extends EventEmitter {
       const orcName = this.getOrcName () || 'greathall';
 
       if (
-        !Object.keys (this._eventsRegistry).some (reg => {
-          return new RegExp (reg).test (topic);
-        })
+        !Object.keys (this._eventsRegistry).some (reg =>
+          new RegExp (reg).test (topic)
+        )
       ) {
         // FIXME: add regex support
         if (topic !== 'greathall::heartbeat') {
