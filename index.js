@@ -188,7 +188,10 @@ class BusClient extends EventEmitter {
       xLog.verb (`notification received: ${topic} for ${orcName}`);
 
       if (msg.token === this._token) {
-        this._eventsRegistry[xUtils.regex.toAxonRegExp (topic)] (msg);
+        Object.keys (this._eventsRegistry)
+          .filter (reg => new RegExp (reg).test (topic))
+          .map (reg => this._eventsRegistry[reg])
+          .forEach (handler => handler (msg));
       } else {
         xLog.info ('invalid token, event discarded');
       }
