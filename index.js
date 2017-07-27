@@ -177,7 +177,6 @@ class BusClient extends EventEmitter {
           new RegExp (reg).test (topic)
         )
       ) {
-        // FIXME: add regex support
         if (topic !== 'greathall::heartbeat') {
           xLog.info (
             `event sent on ${topic} discarded (no subscriber, current orc: ${orcName})`
