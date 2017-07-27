@@ -158,16 +158,15 @@ class BusClient extends EventEmitter {
         !this._connected &&
         topic === autoConnectToken + '::autoconnect.finished'
       ) {
+        const escapeTopic = xUtils.regex.toAxonRegExpStr (
+          'autoconnect.finished'
+        );
         this._connected = true;
         this._subSocket.unsubscribe (
           autoConnectToken + '::autoconnect.finished'
         );
-        this._eventsRegistry[
-          xUtils.regex.toAxonRegExp ('autoconnect.finished')
-        ] (msg);
-        delete this._eventsRegistry[
-          xUtils.regex.toAxonRegExp ('autoconnect.finished')
-        ];
+        this._eventsRegistry[escapeTopic] (msg);
+        delete this._eventsRegistry[escapeTopic];
         return;
       }
 
@@ -198,9 +197,9 @@ class BusClient extends EventEmitter {
   }
 
   _registerAutoconnect (callback, err) {
-    this._eventsRegistry[
-      xUtils.regex.toAxonRegExp ('autoconnect.finished')
-    ] = msg => {
+    const escapeTopic = xUtils.regex.toAxonRegExpStr ('autoconnect.finished');
+
+    this._eventsRegistry[escapeTopic] = msg => {
       this._token = msg.data.token;
       this._orcName = msg.data.orcName;
       this._commandsRegistry = msg.data.cmdRegistry;
