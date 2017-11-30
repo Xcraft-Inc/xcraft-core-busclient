@@ -158,7 +158,7 @@ class BusClient extends EventEmitter {
         !this._connected &&
         topic === autoConnectToken + '::autoconnect.finished'
       ) {
-        const escapeTopic = xUtils.regex.toAxonRegExpStr (
+        const escapeTopic = xUtils.regex.toXcraftRegExpStr (
           'autoconnect.finished'
         );
         this._connected = true;
@@ -199,7 +199,7 @@ class BusClient extends EventEmitter {
   }
 
   _registerAutoconnect (callback, err) {
-    const escapeTopic = xUtils.regex.toAxonRegExpStr ('autoconnect.finished');
+    const escapeTopic = xUtils.regex.toXcraftRegExpStr ('autoconnect.finished');
 
     this._eventsRegistry[escapeTopic] = msg => {
       this._token = msg.data.token;
