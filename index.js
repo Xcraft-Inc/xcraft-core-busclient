@@ -332,6 +332,7 @@ class BusClient extends EventEmitter {
       topic: topic,
       data: {},
       isNested: !!(this.isServerSide () && which && which !== 'greathall'),
+      isError: topic.endsWith ('.error'),
     };
   }
 
