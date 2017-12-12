@@ -19,7 +19,7 @@
     "url": "git+https://github.com/Xcraft-Inc/xcraft-core-busclient.git"
   },
   "dependencies": {
-    "axon": "Xcraft-Inc/axon",
+    "axon": "github:Xcraft-Inc/axon",
     "uuid": "^3.1.0",
     "xcraft-core-bus": "^2.0.2",
     "xcraft-core-etc": "^1.2.0",
