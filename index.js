@@ -165,7 +165,7 @@ class BusClient extends EventEmitter {
         this._subSocket.unsubscribe (
           autoConnectToken + '::autoconnect.finished'
         );
-        this._eventsRegistry[escapeTopic] (msg);
+        this._eventsRegistry[escapeTopic].handler (msg);
         delete this._eventsRegistry[escapeTopic];
         return;
       }
@@ -174,7 +174,7 @@ class BusClient extends EventEmitter {
 
       if (
         !Object.keys (this._eventsRegistry).some (reg =>
-          new RegExp (reg).test (topic)
+          this._eventsRegistry[reg].topic.test (topic)
         )
       ) {
         if (topic !== 'greathall::heartbeat') {
@@ -189,8 +189,8 @@ class BusClient extends EventEmitter {
 
       if (msg.token === this._token) {
         Object.keys (this._eventsRegistry)
-          .filter (reg => new RegExp (reg).test (topic))
-          .map (reg => this._eventsRegistry[reg])
+          .filter (reg => this._eventsRegistry[reg].topic.test (topic))
+          .map (reg => this._eventsRegistry[reg].handler)
           .forEach (handler => handler (msg));
       } else {
         xLog.info ('invalid token, event discarded');
@@ -201,20 +201,25 @@ class BusClient extends EventEmitter {
   _registerAutoconnect (callback, err) {
     const escapeTopic = xUtils.regex.toXcraftRegExpStr ('autoconnect.finished');
 
-    this._eventsRegistry[escapeTopic] = msg => {
-      this._token = msg.data.token;
-      this._orcName = msg.data.orcName;
-      this._commandsRegistry = msg.data.cmdRegistry;
+    this._eventsRegistry[escapeTopic] = {
+      topic: new RegExp (escapeTopic),
+      handler: msg => {
+        this._token = msg.data.token;
+        this._orcName = msg.data.orcName;
+        this._commandsRegistry = msg.data.cmdRegistry;
 
-      xLog.info (this._orcName + ' is serving ' + this._token + ' Great Hall');
+        xLog.info (
+          this._orcName + ' is serving ' + this._token + ' Great Hall'
+        );
 
-      if (this._orcName) {
-        this._subSocket.subscribe (this._orcName + '::*');
-      }
+        if (this._orcName) {
+          this._subSocket.subscribe (this._orcName + '::*');
+        }
 
-      if (callback) {
-        callback (err);
-      }
+        if (callback) {
+          callback (err);
+        }
+      },
     };
   }
 
