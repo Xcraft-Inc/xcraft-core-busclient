@@ -207,6 +207,7 @@ class BusClient extends EventEmitter {
         this._token = msg.data.token;
         this._orcName = msg.data.orcName;
         this._commandsRegistry = msg.data.cmdRegistry;
+        this.emit ('commands.registry');
 
         xLog.info (
           this._orcName + ' is serving ' + this._token + ' Great Hall'
