@@ -342,6 +342,18 @@ class BusClient extends EventEmitter {
     };
   }
 
+  /**
+   * Patch a message for re-sending to an other server.
+   *
+   * It's especially useful in the case of the Horde when a command must be
+   * forwarded to an other server.
+   *
+   * @param {Object} msg - Xcraft message.
+   */
+  patchMessage (msg) {
+    msg.token = this.getToken ();
+  }
+
   isServerSide () {
     return !this._orcName;
   }
