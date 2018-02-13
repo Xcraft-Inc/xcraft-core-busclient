@@ -14,7 +14,7 @@ const Resp = require ('./lib/resp.js');
 let globalBusClient = null;
 
 class BusClient extends EventEmitter {
-  constructor (busConfig) {
+  constructor (busConfig, subscriptions) {
     super ();
 
     this._busConfig = busConfig; /* can be null */
@@ -40,8 +40,12 @@ class BusClient extends EventEmitter {
 
     let autoConnectToken = '';
 
-    this._subSocket.subscribe ('greathall::*'); /* broadcasted by server */
-    this._subSocket.subscribe ('gameover'); /* broadcasted by bus */
+    const subs = subscriptions || [
+      'greathall::*' /* broadcasted by server */,
+      'gameover' /* broadcasted by bus */,
+    ];
+
+    subs.forEach (sub => this._subSocket.subscribe (sub));
 
     this._onCloseSubscribers = {};
     this._onConnectSubscribers = {};
