@@ -286,7 +286,7 @@ class BusClient extends EventEmitter {
       this._token = busToken;
       xLog.verb ('Connected with token: ' + this._token);
 
-      callback (err);
+      callback ();
     });
 
     let busConfig = this._busConfig;
