@@ -142,19 +142,9 @@ class BusClient extends EventEmitter {
 
       if (this._autoconnect && topic === 'greathall::heartbeat') {
         this._autoconnect = false;
-
-        xUtils.crypto.genToken ((err, generatedToken) => {
-          if (err) {
-            xLog.err (err);
-            return;
-          }
-          autoConnectToken = generatedToken;
-          this._subSocket.subscribe (
-            autoConnectToken + '::autoconnect.finished'
-          );
-          this.command.send ('autoconnect', autoConnectToken);
-        });
-
+        autoConnectToken = xUtils.crypto.genToken ();
+        this._subSocket.subscribe (autoConnectToken + '::autoconnect.finished');
+        this.command.send ('autoconnect', autoConnectToken);
         return;
       }
 
