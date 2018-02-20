@@ -34,6 +34,6 @@
   },
   "homepage": "https://github.com/Xcraft-Inc/xcraft-core-busclient#readme",
   "devDependencies": {
-    "xcraft-dev-rules": "^0.1.6"
+    "xcraft-dev-rules": "^0.2.0"
   }
 }
