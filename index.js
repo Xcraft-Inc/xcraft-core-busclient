@@ -166,26 +166,23 @@ class BusClient extends EventEmitter {
 
       const orcName = this.getOrcName() || 'greathall';
 
-      if (
-        !Object.keys(this._eventsRegistry).some(reg =>
-          this._eventsRegistry[reg].topic.test(topic)
-        )
-      ) {
-        if (topic !== 'greathall::heartbeat') {
-          xLog.info(
-            `event sent on ${topic} discarded (no subscriber, current orc: ${orcName})`
-          );
-        }
-        return;
-      }
-
       xLog.verb(`notification received: ${topic} for ${orcName}`);
 
       if (msg.token === this._token) {
-        Object.keys(this._eventsRegistry)
+        const handlers = Object.keys(this._eventsRegistry)
           .filter(reg => this._eventsRegistry[reg].topic.test(topic))
-          .map(reg => this._eventsRegistry[reg].handler)
-          .forEach(handler => handler(msg));
+          .map(reg => this._eventsRegistry[reg].handler);
+
+        handlers.forEach(handler => handler(msg));
+
+        if (!handlers.length) {
+          if (topic !== 'greathall::heartbeat') {
+            xLog.info(
+              `event sent on ${topic} discarded (no subscriber, current orc: ${orcName})`
+            );
+          }
+          return;
+        }
       } else {
         xLog.info('invalid token, event discarded');
       }
