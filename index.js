@@ -210,7 +210,7 @@ class BusClient extends EventEmitter {
         }
 
         if (callback) {
-          callback(err);
+          callback(err, msg.data.isLoaded);
         }
       },
     };
