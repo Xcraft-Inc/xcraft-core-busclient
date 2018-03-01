@@ -136,6 +136,7 @@ class BusClient extends EventEmitter {
 
       if (topic === 'greathall::bus.commands.registry') {
         this._commandsRegistry = msg.data;
+        this._commandsRegistryTime = new Date().toISOString();
         this.emit('commands.registry');
         return;
       }
@@ -196,6 +197,7 @@ class BusClient extends EventEmitter {
         this._token = msg.data.token;
         this._orcName = msg.data.orcName;
         this._commandsRegistry = msg.data.cmdRegistry;
+        this._commandsRegistryTime = new Date().toISOString();
         this.emit('commands.registry');
 
         xLog.info(this._orcName + ' is serving ' + this._token + ' Great Hall');
@@ -359,6 +361,10 @@ class BusClient extends EventEmitter {
 
   getCommandsRegistry() {
     return this._commandsRegistry;
+  }
+
+  getCommandsRegistryTime() {
+    return this._commandsRegistryTime;
   }
 
   isConnected() {
