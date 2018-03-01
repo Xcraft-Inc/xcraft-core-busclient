@@ -167,8 +167,6 @@ class BusClient extends EventEmitter {
 
       const orcName = this.getOrcName() || 'greathall';
 
-      xLog.verb(`notification received: ${topic} for ${orcName}`);
-
       if (msg.token !== this._token) {
         xLog.info('invalid token, event discarded');
         return;
@@ -179,6 +177,7 @@ class BusClient extends EventEmitter {
         .map(reg => this._eventsRegistry[reg].handler);
 
       if (handlers.length) {
+        xLog.verb(`notification received: ${topic} for ${orcName}`);
         handlers.forEach(handler => handler(msg));
       } else if (topic !== 'greathall::heartbeat') {
         xLog.info(
