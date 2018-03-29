@@ -342,6 +342,20 @@ class BusClient extends EventEmitter {
     msg.token = this.getToken();
   }
 
+  registerEvents(topic, handler) {
+    const escapeTopic = xUtils.regex.toXcraftRegExpStr(topic);
+
+    this._eventsRegistry[escapeTopic] = {
+      topic: new RegExp(escapeTopic),
+      handler,
+    };
+  }
+
+  unregisterEvents(topic) {
+    const escapeTopic = xUtils.regex.toXcraftRegExpStr(topic);
+    delete this._eventsRegistry[escapeTopic];
+  }
+
   isServerSide() {
     return !this._orcName;
   }
@@ -352,10 +366,6 @@ class BusClient extends EventEmitter {
 
   getOrcName() {
     return this._orcName;
-  }
-
-  getEventsRegistry() {
-    return this._eventsRegistry;
   }
 
   getCommandsRegistry() {
