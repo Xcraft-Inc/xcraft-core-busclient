@@ -342,6 +342,10 @@ class BusClient extends EventEmitter {
   registerEvents(topic, handler) {
     const escapeTopic = xUtils.regex.toXcraftRegExpStr(topic);
 
+    if (this._eventsRegistry[escapeTopic]) {
+      throw new Error(`${topic} already registered`);
+    }
+
     const re = new RegExp(escapeTopic);
     const ids = extractIds(topic);
     const id = ids.length > 1 ? ids[1] : ids[0];
