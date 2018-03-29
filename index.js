@@ -2,7 +2,7 @@
 
 const moduleName = 'busclient';
 
-const {Router} = require('xcraft-core-transport');
+const {Router, Cache, extractIds} = require('xcraft-core-transport');
 const uuidV4 = require('uuid/v4');
 
 const xLog = require('xcraft-core-log')(moduleName, null);
@@ -24,6 +24,7 @@ class BusClient extends EventEmitter {
 
     this._eventsRegistry = {};
     this._commandsRegistry = {};
+    this._eventsCache = new Cache();
 
     this._token = 'invalid';
     this._orcName = null;
@@ -172,9 +173,10 @@ class BusClient extends EventEmitter {
         return;
       }
 
-      const handlers = Object.keys(this._eventsRegistry)
-        .filter(reg => this._eventsRegistry[reg].topic.test(topic))
-        .map(reg => this._eventsRegistry[reg].handler);
+      const handlers = this._eventsCache.map(
+        topic,
+        (id, key) => this._eventsRegistry[key].handler
+      );
 
       if (handlers.length) {
         xLog.verb(`notification received: ${topic} for ${orcName}`);
@@ -340,15 +342,23 @@ class BusClient extends EventEmitter {
   registerEvents(topic, handler) {
     const escapeTopic = xUtils.regex.toXcraftRegExpStr(topic);
 
+    const re = new RegExp(escapeTopic);
+    const ids = extractIds(topic);
+    const id = ids.length > 1 ? ids[1] : ids[0];
+    this._eventsCache.set(id, escapeTopic, re);
     this._eventsRegistry[escapeTopic] = {
-      topic: new RegExp(escapeTopic),
+      topic: re,
       handler,
+      unregister: () => {
+        this._eventsCache.del(id, escapeTopic);
+        delete this._eventsRegistry[escapeTopic];
+      },
     };
   }
 
   unregisterEvents(topic) {
     const escapeTopic = xUtils.regex.toXcraftRegExpStr(topic);
-    delete this._eventsRegistry[escapeTopic];
+    this._eventsRegistry[escapeTopic].unregister();
   }
 
   isServerSide() {
