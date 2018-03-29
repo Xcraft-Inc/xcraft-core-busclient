@@ -160,8 +160,8 @@ class BusClient extends EventEmitter {
         this._subSocket.unsubscribe(
           autoConnectToken + '::autoconnect.finished'
         );
-        this._eventsRegistry[escapeTopic].handler(msg);
-        delete this._eventsRegistry[escapeTopic];
+        this._eventsRegistry[escapeTopic].handler(msg); // FIXME: replace by a getter
+        this.unregisterEvents('autoconnect.finished');
         return;
       }
 
@@ -188,28 +188,23 @@ class BusClient extends EventEmitter {
   }
 
   _registerAutoconnect(callback, err) {
-    const escapeTopic = xUtils.regex.toXcraftRegExpStr('autoconnect.finished');
+    this.registerEvents('autoconnect.finished', msg => {
+      this._token = msg.data.token;
+      this._orcName = msg.data.orcName;
+      this._commandsRegistry = msg.data.cmdRegistry;
+      this._commandsRegistryTime = new Date().toISOString();
+      this.emit('commands.registry');
 
-    this._eventsRegistry[escapeTopic] = {
-      topic: new RegExp(escapeTopic),
-      handler: msg => {
-        this._token = msg.data.token;
-        this._orcName = msg.data.orcName;
-        this._commandsRegistry = msg.data.cmdRegistry;
-        this._commandsRegistryTime = new Date().toISOString();
-        this.emit('commands.registry');
+      xLog.info(this._orcName + ' is serving ' + this._token + ' Great Hall');
 
-        xLog.info(this._orcName + ' is serving ' + this._token + ' Great Hall');
+      if (this._orcName) {
+        this._subSocket.subscribe(this._orcName + '::*');
+      }
 
-        if (this._orcName) {
-          this._subSocket.subscribe(this._orcName + '::*');
-        }
-
-        if (callback) {
-          callback(err, msg.data.isLoaded);
-        }
-      },
-    };
+      if (callback) {
+        callback(err, msg.data.isLoaded);
+      }
+    });
   }
 
   _subscribeClose(callback) {
