@@ -343,7 +343,8 @@ class BusClient extends EventEmitter {
     const escapeTopic = xUtils.regex.toXcraftRegExpStr(topic);
 
     if (this._eventsRegistry[escapeTopic]) {
-      throw new Error(`${topic} already registered`);
+      xLog.warn(`${topic} already registered, unsub and sub again`);
+      this.unregisterEvents(topic);
     }
 
     const re = new RegExp(escapeTopic);
