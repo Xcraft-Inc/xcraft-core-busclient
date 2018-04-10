@@ -308,10 +308,12 @@ class BusClient extends EventEmitter {
   /**
    * Return a new empty message for the commands.
    *
-   * The \p isNested attribute is set when the command is called from the server
+   * The isNested attribute is set when the command is called from the server
    * side but with an orc name.
    *
-   * @return {object} the new message.
+   * @param {string} topic - Event's topic or command's name.
+   * @param {string} which - The sender's identity (orcName).
+   * @return {Object} the new message.
    */
   newMessage(topic, which) {
     return {
