@@ -322,7 +322,7 @@ class BusClient extends EventEmitter {
       orcName: which,
       timestamp: new Date().toISOString(),
       id: uuidV4(),
-      topic: topic,
+      topic,
       data: {},
       isNested: !!(this.isServerSide() && which && which !== 'greathall'),
       isError: topic && topic.endsWith('.error'),
