@@ -2,7 +2,11 @@
 
 const moduleName = 'busclient';
 
-const {Router, Cache, extractIds} = require('xcraft-core-transport');
+const {
+  Router,
+  Cache,
+  helpers: {extractIds},
+} = require('xcraft-core-transport');
 const uuidV4 = require('uuid/v4');
 
 const xLog = require('xcraft-core-log')(moduleName, null);
