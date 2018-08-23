@@ -324,7 +324,6 @@ class BusClient extends EventEmitter {
       _xcraftMessage: true,
       token: this.getToken(),
       orcName: which,
-      timestamp: new Date().toISOString(),
       id: uuidV4(),
       topic,
       data: {},
