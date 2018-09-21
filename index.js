@@ -323,11 +323,13 @@ class BusClient extends EventEmitter {
    *
    * @param {string} topic - Event's topic or command's name.
    * @param {string} which - The sender's identity (orcName).
+   * @param {Array} transports - List of transports (routes).
    * @return {Object} the new message.
    */
-  newMessage(topic, which) {
+  newMessage(topic, which, transports = []) {
     return {
       _xcraftMessage: true,
+      _xcraftTransports: transports,
       token: this.getToken(),
       orcName: which,
       id: uuidV4(),
@@ -406,13 +408,13 @@ class BusClient extends EventEmitter {
   }
 }
 
-exports.newResponse = function(moduleName, orcName) {
+exports.newResponse = function(moduleName, orcName, transports) {
   let self = null;
   if (this instanceof BusClient) {
     self = this;
   }
 
-  return new Resp(self, moduleName, orcName);
+  return new Resp(self, moduleName, orcName, transports);
 };
 
 exports.initGlobal = function() {
