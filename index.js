@@ -244,9 +244,9 @@ class BusClient extends EventEmitter {
    * The busToken must be passed only when BusClient is used on the server
    * side. In all other cases, the argument _must_ be null.
    *
-   * @param {string} backend
-   * @param {string} busToken
-   * @param {function(err)} callback
+   * @param {string} backend - Transport's backend (ee or axon).
+   * @param {string} busToken - Server's token, or null for autoconnect.
+   * @param {function(err)} callback - Callback.
    */
   connect(backend, busToken, callback) {
     xLog.verb('Connecting...');
@@ -298,7 +298,7 @@ class BusClient extends EventEmitter {
   /**
    * Close the connections on the buses.
    *
-   * @param {function(err)} callback
+   * @param {function(err)} callback - Callback.
    */
   stop(callback) {
     xLog.verb(`Stopping for ${this._orcName || 'greathall'}...`);
