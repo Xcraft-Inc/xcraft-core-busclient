@@ -329,7 +329,7 @@ class BusClient extends EventEmitter {
   newMessage(topic, which, transports = []) {
     return {
       _xcraftMessage: true,
-      _xcraftTransports: transports,
+      transports,
       token: this.getToken(),
       orcName: which,
       id: uuidV4(),
