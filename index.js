@@ -86,14 +86,10 @@ class BusClient extends EventEmitter {
     const onReconnectAttempt = () => {
       xLog.verb('Attempt a reconnect');
 
-      if (this._orcName) {
-        this._subSocket.unsubscribe(this._orcName + '::*');
-      }
-
       this._connected = false;
       this._autoconnect = true;
       this._token = 'invalid';
-      this._orcName = null;
+
       this._registerAutoconnect(() => {
         this.emit('reconnect');
       });
@@ -197,15 +193,19 @@ class BusClient extends EventEmitter {
 
   _registerAutoconnect(callback, err) {
     this.registerEvents('autoconnect.finished', msg => {
+      const isNewOrcName = this._orcName !== msg.data.orcName;
+
       this._token = msg.data.token;
-      this._orcName = msg.data.orcName;
+      if (!this._orcName) {
+        this._orcName = msg.data.orcName;
+      }
       this._commandsRegistry = msg.data.cmdRegistry;
       this._commandsRegistryTime = new Date().toISOString();
       this.emit('commands.registry');
 
       xLog.info(this._orcName + ' is serving ' + this._token + ' Great Hall');
 
-      if (this._orcName) {
+      if (this._orcName && isNewOrcName) {
         this._subSocket.subscribe(this._orcName + '::*');
       }
 
