@@ -88,7 +88,6 @@ class BusClient extends EventEmitter {
 
       this._connected = false;
       this._autoconnect = true;
-      this._token = 'invalid';
 
       this._registerAutoconnect(() => {
         this.emit('reconnect');
@@ -194,6 +193,14 @@ class BusClient extends EventEmitter {
   _registerAutoconnect(callback, err) {
     this.registerEvents('autoconnect.finished', msg => {
       const isNewOrcName = this._orcName !== msg.data.orcName;
+
+      if (this._token !== 'invalid' && this._token !== msg.data.token) {
+        xLog.warn(
+          `reconnecting to the server has provided a new token: ${
+            this._token
+          } -> ${msg.data.token}`
+        );
+      }
 
       this._token = msg.data.token;
       if (!this._orcName) {
