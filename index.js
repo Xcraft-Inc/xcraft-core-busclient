@@ -200,6 +200,7 @@ class BusClient extends EventEmitter {
             this._token
           } -> ${msg.data.token}`
         );
+        this.emit('token.changed');
       }
 
       this._token = msg.data.token;
