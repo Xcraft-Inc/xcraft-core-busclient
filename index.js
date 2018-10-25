@@ -143,6 +143,11 @@ class BusClient extends EventEmitter {
         return;
       }
 
+      if (topic === 'greathall::bus.token.changed') {
+        this.emit('token.changed');
+        return;
+      }
+
       if (this._autoconnect && topic === 'greathall::heartbeat') {
         this._autoconnect = false;
         autoConnectToken = xUtils.crypto.genToken();
