@@ -19,8 +19,8 @@
     "url": "git+https://github.com/Xcraft-Inc/xcraft-core-busclient.git"
   },
   "dependencies": {
+    "gigawatts": "^4.0.0",
     "uuid": "^3.1.0",
-    "watt": "^3.3.0",
     "xcraft-axon": "^2.0.4",
     "xcraft-core-bus": "^2.0.2",
     "xcraft-core-etc": "^1.2.0",
