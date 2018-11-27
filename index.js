@@ -361,6 +361,11 @@ class BusClient extends EventEmitter {
     msg.token = this.getToken();
   }
 
+  _unregister(id, escapeTopic) {
+    this._eventsCache.del(id, escapeTopic);
+    delete this._eventsRegistry[escapeTopic];
+  }
+
   registerEvents(topic, handler) {
     const escapeTopic = xUtils.regex.toXcraftRegExpStr(topic);
 
@@ -376,10 +381,7 @@ class BusClient extends EventEmitter {
     this._eventsRegistry[escapeTopic] = {
       topic: re,
       handler,
-      unregister: () => {
-        this._eventsCache.del(id, escapeTopic);
-        delete this._eventsRegistry[escapeTopic];
-      },
+      unregister: () => this._unregister(id, escapeTopic),
     };
   }
 
