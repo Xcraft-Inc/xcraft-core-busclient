@@ -149,10 +149,14 @@ class BusClient extends EventEmitter {
       }
 
       if (this._autoconnect && topic === 'greathall::heartbeat') {
+        const xBus = require('xcraft-core-bus');
         this._autoconnect = false;
         autoConnectToken = xUtils.crypto.genToken();
         this._subSocket.subscribe(autoConnectToken + '::autoconnect.finished');
-        this.command.send('autoconnect', autoConnectToken);
+        this.command.send('autoconnect', {
+          autoConnectToken,
+          originToken: xBus.getToken(),
+        });
         return;
       }
 
