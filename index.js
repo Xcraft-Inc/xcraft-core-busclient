@@ -23,8 +23,9 @@ class BusClient extends EventEmitter {
 
     this._busConfig = busConfig; /* can be null */
 
-    this._subSocket = new Router('sub', xLog);
-    this._pushSocket = new Router('push', xLog);
+    const id = uuidV4();
+    this._subSocket = new Router(id, 'sub', xLog);
+    this._pushSocket = new Router(id, 'push', xLog);
 
     this._eventsRegistry = {};
     this._commandsRegistry = {};
@@ -332,19 +333,26 @@ class BusClient extends EventEmitter {
    *
    * @param {string} topic - Event's topic or command's name.
    * @param {string} which - The sender's identity (orcName).
-   * @param {Array} transports - List of transports (routes).
+   * @param {Array} [transports] - List of transports (routes).
+   * @param {boolean} [isNestedCall] - Must be used for events only in-proc.
    * @return {Object} the new message.
    */
-  newMessage(topic, which, transports = []) {
+  newMessage(topic, which, transports = [], isNestedCall = false) {
+    const id = uuidV4();
+    const isNested =
+      topic &&
+      !topic.includes('::') && // is a command
+      !!(this.isServerSide() && which && which !== 'greathall');
+
     return {
       _xcraftMessage: true,
       transports,
       token: this.getToken(),
       orcName: which,
-      id: uuidV4(),
+      id: isNestedCall ? `${id}-nested` : id,
       topic,
       data: {},
-      isNested: !!(this.isServerSide() && which && which !== 'greathall'),
+      isNested,
       isError: topic && topic.endsWith('.error'),
     };
   }
@@ -359,6 +367,7 @@ class BusClient extends EventEmitter {
    */
   patchMessage(msg) {
     msg.token = this.getToken();
+    msg.isNested = false;
   }
 
   _unregister(id, escapeTopic) {
@@ -419,13 +428,13 @@ class BusClient extends EventEmitter {
   }
 }
 
-exports.newResponse = function(moduleName, orcName, transports) {
+exports.newResponse = function(moduleName, orcName, transports, isNested) {
   let self = null;
   if (this instanceof BusClient) {
     self = this;
   }
 
-  return new Resp(self, moduleName, orcName, transports);
+  return new Resp(self, moduleName, orcName, transports, isNested);
 };
 
 exports.initGlobal = function() {
