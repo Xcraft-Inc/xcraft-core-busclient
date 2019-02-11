@@ -333,11 +333,9 @@ class BusClient extends EventEmitter {
    *
    * @param {string} topic - Event's topic or command's name.
    * @param {string} which - The sender's identity (orcName).
-   * @param {Array} [transports] - List of transports (routes).
-   * @param {boolean} [isNestedCall] - Must be used for events only in-proc.
    * @return {Object} the new message.
    */
-  newMessage(topic, which, transports = [], isNestedCall = false) {
+  newMessage(topic, which) {
     const id = uuidV4();
     const isNested =
       topic &&
@@ -346,10 +344,9 @@ class BusClient extends EventEmitter {
 
     return {
       _xcraftMessage: true,
-      transports,
       token: this.getToken(),
       orcName: which,
-      id: isNestedCall ? `${id}-nested` : id,
+      id,
       topic,
       data: {},
       isNested,
@@ -367,7 +364,6 @@ class BusClient extends EventEmitter {
    */
   patchMessage(msg) {
     msg.token = this.getToken();
-    msg.isNested = false;
   }
 
   _unregister(id, escapeTopic) {
@@ -428,13 +424,13 @@ class BusClient extends EventEmitter {
   }
 }
 
-exports.newResponse = function(moduleName, orcName, transports, isNested) {
+exports.newResponse = function(moduleName, orcName, routing) {
   let self = null;
   if (this instanceof BusClient) {
     self = this;
   }
 
-  return new Resp(self, moduleName, orcName, transports, isNested);
+  return new Resp(self, moduleName, orcName, routing);
 };
 
 exports.initGlobal = function() {
