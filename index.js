@@ -201,9 +201,7 @@ class BusClient extends EventEmitter {
 
       if (this._token !== 'invalid' && this._token !== msg.data.token) {
         xLog.warn(
-          `reconnecting to the server has provided a new token: ${
-            this._token
-          } -> ${msg.data.token}`
+          `reconnecting to the server has provided a new token: ${this._token} -> ${msg.data.token}`
         );
         this.emit('token.changed');
       }
