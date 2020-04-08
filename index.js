@@ -51,12 +51,12 @@ class BusClient extends EventEmitter {
       'gameover' /* broadcasted by bus */,
     ];
 
-    subs.forEach(sub => this._subSocket.subscribe(sub));
+    subs.forEach((sub) => this._subSocket.subscribe(sub));
 
     this._onCloseSubscribers = {};
     this._onConnectSubscribers = {};
 
-    const onClosed = err => {
+    const onClosed = (err) => {
       if (!this._subClosed || !this._pushClosed) {
         return;
       }
@@ -65,12 +65,12 @@ class BusClient extends EventEmitter {
         xLog.verb(`bus stopped for ${this._orcName || 'greathall'}`);
       }
 
-      Object.keys(this._onCloseSubscribers).forEach(key =>
+      Object.keys(this._onCloseSubscribers).forEach((key) =>
         this._onCloseSubscribers[key].callback(err)
       );
     };
 
-    const onConnected = err => {
+    const onConnected = (err) => {
       if (this._subClosed || this._pushClosed) {
         return;
       }
@@ -79,7 +79,7 @@ class BusClient extends EventEmitter {
         xLog.verb('Connected');
       }
 
-      Object.keys(this._onConnectSubscribers).forEach(key =>
+      Object.keys(this._onConnectSubscribers).forEach((key) =>
         this._onConnectSubscribers[key].callback(err)
       );
     };
@@ -96,7 +96,7 @@ class BusClient extends EventEmitter {
     };
 
     this._subSocket
-      .on('close', err => {
+      .on('close', (err) => {
         this._subClosed = true;
         onClosed(err);
       })
@@ -105,7 +105,7 @@ class BusClient extends EventEmitter {
         this._subClosed = false;
         onConnected();
       })
-      .on('error', err => {
+      .on('error', (err) => {
         this._subClosed = true;
         onClosed(err);
         onConnected(err);
@@ -113,7 +113,7 @@ class BusClient extends EventEmitter {
       .on('reconnect attempt', onReconnectAttempt);
 
     this._pushSocket
-      .on('close', err => {
+      .on('close', (err) => {
         this._pushClosed = true;
         onClosed(err);
       })
@@ -122,7 +122,7 @@ class BusClient extends EventEmitter {
         this._pushClosed = false;
         onConnected();
       })
-      .on('error', err => {
+      .on('error', (err) => {
         this._pushClosed = true;
         onClosed(err);
         onConnected(err);
@@ -187,7 +187,7 @@ class BusClient extends EventEmitter {
 
       if (handlers.length) {
         xLog.verb(`notification received: ${topic} for ${orcName}`);
-        handlers.forEach(handler => handler(msg));
+        handlers.forEach((handler) => handler(msg));
       } else if (topic !== 'greathall::heartbeat') {
         xLog.info(
           `event sent on ${topic} discarded (no subscriber, current orc: ${orcName})`
@@ -197,7 +197,7 @@ class BusClient extends EventEmitter {
   }
 
   _registerAutoconnect(callback, err) {
-    this.registerEvents('autoconnect.finished', msg => {
+    this.registerEvents('autoconnect.finished', (msg) => {
       const isNewOrcName = this._orcName !== msg.data.orcName;
 
       if (this._token !== 'invalid' && this._token !== msg.data.token) {
@@ -265,7 +265,7 @@ class BusClient extends EventEmitter {
   connect(backend, busToken, callback) {
     xLog.verb('Connecting...');
 
-    const unsubscribe = this._subscribeConnect(err => {
+    const unsubscribe = this._subscribeConnect((err) => {
       unsubscribe();
 
       if (err) {
@@ -311,7 +311,7 @@ class BusClient extends EventEmitter {
   stop(callback) {
     xLog.verb(`Stopping for ${this._orcName || 'greathall'}...`);
 
-    const unsubscribe = this._subscribeClose(err => {
+    const unsubscribe = this._subscribeClose((err) => {
       unsubscribe();
       if (callback) {
         callback(err);
@@ -422,7 +422,7 @@ class BusClient extends EventEmitter {
   }
 }
 
-exports.newResponse = function(moduleName, orcName, routing) {
+exports.newResponse = function (moduleName, orcName, routing) {
   let self = null;
   if (this instanceof BusClient) {
     self = this;
@@ -431,12 +431,12 @@ exports.newResponse = function(moduleName, orcName, routing) {
   return new Resp(self, moduleName, orcName, routing);
 };
 
-exports.initGlobal = function() {
+exports.initGlobal = function () {
   globalBusClient = new BusClient();
   return globalBusClient;
 };
 
-exports.getGlobal = function() {
+exports.getGlobal = function () {
   return globalBusClient;
 };
 
