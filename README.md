@@ -1,4 +1,3 @@
-
 # xcraft-core-busclient
 
 Client for the Xcraft bus.
