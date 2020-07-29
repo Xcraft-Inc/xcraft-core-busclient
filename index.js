@@ -70,7 +70,7 @@ class BusClient extends EventEmitter {
       );
     };
 
-    const onConnected = (err) => {
+    const onConnected = (err, type) => {
       if (this._subClosed || this._pushClosed) {
         return;
       }
@@ -80,7 +80,7 @@ class BusClient extends EventEmitter {
       }
 
       Object.keys(this._onConnectSubscribers).forEach((key) =>
-        this._onConnectSubscribers[key].callback(err)
+        this._onConnectSubscribers[key].callback(err, type)
       );
     };
 
@@ -103,12 +103,12 @@ class BusClient extends EventEmitter {
       .on('connect', () => {
         xLog.verb('Bus client subscribed to notifications bus');
         this._subClosed = false;
-        onConnected();
+        onConnected(null, 'sub');
       })
       .on('error', (err) => {
         this._subClosed = true;
         onClosed(err);
-        onConnected(err);
+        onConnected(err, 'sub');
       })
       .on('reconnect attempt', onReconnectAttempt);
 
@@ -120,12 +120,12 @@ class BusClient extends EventEmitter {
       .on('connect', () => {
         xLog.verb('Bus client ready to send on command bus');
         this._pushClosed = false;
-        onConnected();
+        onConnected(null, 'push');
       })
       .on('error', (err) => {
         this._pushClosed = true;
         onClosed(err);
-        onConnected(err);
+        onConnected(err, 'push');
       })
       .on('reconnect attempt', onReconnectAttempt);
 
@@ -265,7 +265,7 @@ class BusClient extends EventEmitter {
   connect(backend, busToken, callback) {
     xLog.verb('Connecting...');
 
-    const unsubscribe = this._subscribeConnect((err) => {
+    const unsubscribe = this._subscribeConnect((err, type) => {
       unsubscribe();
 
       if (err) {
@@ -274,7 +274,7 @@ class BusClient extends EventEmitter {
       }
 
       /* TODO: Explain auto-connect mecha */
-      if (!busToken) {
+      if (!busToken && type === 'push') {
         /* Autoconnect is sent when the server is ready (heartbeat). */
         this._registerAutoconnect(callback, err);
         this._autoconnect = true;
