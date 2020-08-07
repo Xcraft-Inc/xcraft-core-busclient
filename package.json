@@ -22,11 +22,11 @@
     "gigawatts": "^4.0.1",
     "uuid": "^3.1.0",
     "xcraft-axon": "^2.1.0",
-    "xcraft-core-bus": "^3.0.0",
-    "xcraft-core-etc": "^2.0.0",
-    "xcraft-core-log": "^1.0.0",
-    "xcraft-core-transport": "^2.0.0",
-    "xcraft-core-utils": "^2.0.0"
+    "xcraft-core-bus": "^4.0.0",
+    "xcraft-core-etc": "^2.0.4",
+    "xcraft-core-log": "^1.3.0",
+    "xcraft-core-transport": "^3.0.0",
+    "xcraft-core-utils": "^3.0.0"
   },
   "author": "Mathieu Schroeter & Samuel Loup",
   "license": "MIT",
