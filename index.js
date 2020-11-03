@@ -138,9 +138,12 @@ class BusClient extends EventEmitter {
       }
 
       if (topic === 'greathall::bus.commands.registry') {
-        this._commandsRegistry = msg.data;
+        this._commandsRegistry = msg.data.registry;
         this._commandsRegistryTime = new Date().toISOString();
-        this.emit('commands.registry');
+        this.emit('commands.registry', null, {
+          token: msg.data.token,
+          time: this._commandsRegistryTime,
+        });
         return;
       }
 
@@ -213,7 +216,10 @@ class BusClient extends EventEmitter {
       }
       this._commandsRegistry = msg.data.cmdRegistry;
       this._commandsRegistryTime = new Date().toISOString();
-      this.emit('commands.registry');
+      this.emit('commands.registry', null, {
+        token: msg.data.token,
+        time: this._commandsRegistryTime,
+      });
 
       xLog.info(this._orcName + ' is serving ' + this._token + ' Great Hall');
 
