@@ -423,6 +423,11 @@ class BusClient extends EventEmitter {
   newResponse() {
     return exports.newResponse.apply(this, arguments);
   }
+
+  getNice() {
+    const nice = this._busConfig && this._busConfig.nice;
+    return nice || 0;
+  }
 }
 
 exports.newResponse = function (moduleName, orcName, routing) {
