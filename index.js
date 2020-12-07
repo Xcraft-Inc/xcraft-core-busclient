@@ -156,10 +156,14 @@ class BusClient extends EventEmitter {
         this._autoconnect = false;
         autoConnectToken = xUtils.crypto.genToken();
         this._subSocket.subscribe(autoConnectToken + '::autoconnect.finished');
-        this.command.send('autoconnect', {
-          autoConnectToken,
-          nice: this._busConfig ? this._busConfig.nice : 0,
-        });
+        this.command.send(
+          'autoconnect',
+          {
+            autoConnectToken,
+            nice: this._busConfig ? this._busConfig.nice : 0,
+          },
+          'greathall'
+        );
         return;
       }
 
