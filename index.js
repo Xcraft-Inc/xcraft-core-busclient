@@ -7,7 +7,7 @@ const {
   Cache,
   helpers: {extractIds},
 } = require('xcraft-core-transport');
-const uuidV4 = require('uuid/v4');
+const {v4: uuidV4} = require('uuid');
 
 const xLog = require('xcraft-core-log')(moduleName, null);
 const xUtils = require('xcraft-core-utils');
