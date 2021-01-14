@@ -210,11 +210,16 @@ class BusClient extends EventEmitter {
     this.registerEvents('autoconnect.finished', (msg) => {
       const isNewOrcName = this._orcName !== msg.data.orcName;
 
-      if (this._token !== 'invalid' && this._token !== msg.data.token) {
-        xLog.warn(
-          `reconnecting to the server has provided a new token: ${this._token} -> ${msg.data.token}`
-        );
-        this.emit('token.changed');
+      if (this._token !== 'invalid') {
+        if (this._token !== msg.data.token) {
+          xLog.warn(
+            `reconnecting to the server has provided a new token: ${this._token} -> ${msg.data.token}`
+          );
+          this.emit('token.changed');
+        } else {
+          xLog.warn(`resend all lines after reconnecting to the server`);
+          Router.resendLines();
+        }
       }
 
       this._token = msg.data.token;
