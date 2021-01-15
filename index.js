@@ -137,34 +137,50 @@ class BusClient extends EventEmitter {
         return;
       }
 
-      if (topic === 'greathall::bus.commands.registry') {
-        this._commandsRegistry = msg.data.registry;
-        this._commandsRegistryTime = new Date().toISOString();
-        this.emit('commands.registry', null, {
-          token: msg.data.token,
-          time: this._commandsRegistryTime,
-        });
-        return;
-      }
+      if (topic.startsWith('greathall::')) {
+        if (topic === 'greathall::bus.commands.registry') {
+          this._commandsRegistry = msg.data.registry;
+          this._commandsRegistryTime = new Date().toISOString();
+          this.emit('commands.registry', null, {
+            token: msg.data.token,
+            time: this._commandsRegistryTime,
+          });
+          return;
+        }
 
-      if (topic === 'greathall::bus.token.changed') {
-        this.emit('token.changed');
-        return;
-      }
+        if (topic === 'greathall::bus.token.changed') {
+          this.emit('token.changed');
+          return;
+        }
 
-      if (this._autoconnect && topic === 'greathall::heartbeat') {
-        this._autoconnect = false;
-        autoConnectToken = xUtils.crypto.genToken();
-        this._subSocket.subscribe(autoConnectToken + '::autoconnect.finished');
-        this.command.send(
-          'autoconnect',
-          {
-            autoConnectToken,
-            nice: this._busConfig ? this._busConfig.nice : 0,
-          },
-          'greathall'
-        );
-        return;
+        if (
+          topic === 'greathall::bus.orcname.changed' &&
+          this._token === msg.data.token
+        ) {
+          this.emit(
+            'orcname.changed',
+            msg.data.oldOrcName,
+            msg.data.newOrcName
+          );
+          return;
+        }
+
+        if (this._autoconnect && topic === 'greathall::heartbeat') {
+          this._autoconnect = false;
+          autoConnectToken = xUtils.crypto.genToken();
+          this._subSocket.subscribe(
+            autoConnectToken + '::autoconnect.finished'
+          );
+          this.command.send(
+            'autoconnect',
+            {
+              autoConnectToken,
+              nice: this._busConfig ? this._busConfig.nice : 0,
+            },
+            'greathall'
+          );
+          return;
+        }
       }
 
       if (
@@ -220,7 +236,7 @@ class BusClient extends EventEmitter {
           xLog.warn(
             `reconnecting to the server has provided a new orcName: ${this._orcName} -> ${msg.data.orcName}`
           );
-          this.emit('orcname.changed');
+          this.emit('orcname.changed', this._orcName, msg.data.orcName);
         }
       }
 
