@@ -90,6 +90,8 @@ class BusClient extends EventEmitter {
       this._connected = false;
       this._autoconnect = true;
 
+      this.emit('reconnect attempt');
+
       this._registerAutoconnect(() => {
         this.emit('reconnect');
       });
