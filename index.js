@@ -167,6 +167,18 @@ class BusClient extends EventEmitter {
           return;
         }
 
+        if (topic === 'greathall::bus.reconnect') {
+          switch (msg.data.status) {
+            case 'attempt':
+              this.emit('reconnect attempt');
+              break;
+            case 'done':
+              this.emit('reconnect');
+              break;
+          }
+          return;
+        }
+
         if (this._autoconnect && topic === 'greathall::heartbeat') {
           this._autoconnect = false;
           autoConnectToken = xUtils.crypto.genToken();
