@@ -88,7 +88,7 @@ class BusClient extends EventEmitter {
       xLog.verb('Attempt a reconnect');
 
       if (from === 'push') {
-        this._subSocket.destroySocket();
+        this._subSocket.destroySockets();
       }
 
       this._connected = false;
