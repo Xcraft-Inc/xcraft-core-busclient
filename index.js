@@ -45,6 +45,7 @@ class BusClient extends EventEmitter {
     this.command = new Command(this, this._pushSocket);
 
     let autoConnectToken = '';
+    let skipKeepAlive = false;
 
     const subs = subscriptions || [
       'greathall::*' /* broadcasted by server */,
@@ -183,21 +184,33 @@ class BusClient extends EventEmitter {
           return;
         }
 
-        if (this._autoconnect && topic === 'greathall::heartbeat') {
-          this._autoconnect = false;
-          autoConnectToken = xUtils.crypto.genToken();
-          this._subSocket.subscribe(
-            autoConnectToken + '::autoconnect.finished'
-          );
-          this.command.send(
-            'autoconnect',
-            {
-              autoConnectToken,
-              nice: this._busConfig ? this._busConfig.nice : 0,
-            },
-            'greathall'
-          );
-          return;
+        if (topic === 'greathall::heartbeat') {
+          if (this._autoconnect) {
+            this._autoconnect = false;
+            autoConnectToken = xUtils.crypto.genToken();
+            this._subSocket.subscribe(
+              autoConnectToken + '::autoconnect.finished'
+            );
+            this.command.send(
+              'autoconnect',
+              {
+                autoConnectToken,
+                nice: this._busConfig ? this._busConfig.nice : 0,
+              },
+              'greathall'
+            );
+            return;
+          }
+
+          /* Keep the command bus alive (each 5 minutes) */
+          if (parseInt(new Date().getTime() / 1000 / 60) % 5 === 0) {
+            if (!skipKeepAlive) {
+              this.command.keepAlive();
+              skipKeepAlive = true;
+            }
+          } else {
+            skipKeepAlive = false;
+          }
         }
       }
 
