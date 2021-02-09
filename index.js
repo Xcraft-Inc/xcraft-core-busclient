@@ -93,6 +93,8 @@ class BusClient extends EventEmitter {
 
       if (from === 'push') {
         this._subSocket.destroySockets();
+      } else if (from === 'sub') {
+        this._pushSocket.destroySockets();
       }
 
       this._connected = false;
