@@ -229,6 +229,10 @@ class BusClient extends EventEmitter {
         return;
       }
 
+      if (!this._connected) {
+        return;
+      }
+
       const orcName = this.getOrcName() || 'greathall';
 
       if (msg.token !== this._token) {
