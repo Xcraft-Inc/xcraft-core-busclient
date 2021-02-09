@@ -85,6 +85,10 @@ class BusClient extends EventEmitter {
     };
 
     const onReconnectAttempt = (from) => {
+      if (!this._connected) {
+        return;
+      }
+
       xLog.verb('Attempt a reconnect');
 
       if (from === 'push') {
