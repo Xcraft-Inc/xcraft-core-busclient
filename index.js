@@ -116,7 +116,10 @@ class BusClient extends EventEmitter {
         onClosed(err);
         onConnected(err);
       })
-      .on('reconnect attempt', () => onReconnectAttempt('sub'));
+      .on('reconnect attempt', () => {
+        this._subClosed = true;
+        onReconnectAttempt('sub');
+      });
 
     this._pushSocket
       .on('close', (err) => {
@@ -133,7 +136,10 @@ class BusClient extends EventEmitter {
         onClosed(err);
         onConnected(err);
       })
-      .on('reconnect attempt', () => onReconnectAttempt('push'));
+      .on('reconnect attempt', () => {
+        this._pushClosed = true;
+        onReconnectAttempt('push');
+      });
 
     this._subSocket.on('message', (topic, msg) => {
       if (topic === 'gameover') {
