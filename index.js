@@ -258,6 +258,10 @@ class BusClient extends EventEmitter {
     });
   }
 
+  destroyPushSocket() {
+    this._pushSocket.destroySockets();
+  }
+
   _registerAutoconnect(callback, err) {
     this.registerEvents('autoconnect.finished', (msg) => {
       const isNewOrcName = this._orcName !== msg.data.orcName;
