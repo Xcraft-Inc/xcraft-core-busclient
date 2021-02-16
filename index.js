@@ -61,6 +61,8 @@ class BusClient extends EventEmitter {
         return;
       }
 
+      this.emit('close');
+
       if (!err) {
         xLog.verb(`bus stopped for ${this._orcName || 'greathall'}`);
       }
