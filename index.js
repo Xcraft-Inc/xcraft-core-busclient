@@ -61,6 +61,8 @@ class BusClient extends EventEmitter {
         return;
       }
 
+      this.emit('close');
+
       if (!err) {
         xLog.verb(`bus stopped for ${this._orcName || 'greathall'}`);
       }
@@ -84,11 +86,23 @@ class BusClient extends EventEmitter {
       );
     };
 
-    const onReconnectAttempt = () => {
+    const onReconnectAttempt = (from) => {
+      if (!this._connected) {
+        return;
+      }
+
       xLog.verb('Attempt a reconnect');
+
+      if (from === 'push') {
+        this._subSocket.destroySockets();
+      } else if (from === 'sub') {
+        this._pushSocket.destroySockets();
+      }
 
       this._connected = false;
       this._autoconnect = true;
+
+      this.emit('reconnect attempt');
 
       this._registerAutoconnect(() => {
         this.emit('reconnect');
@@ -110,7 +124,10 @@ class BusClient extends EventEmitter {
         onClosed(err);
         onConnected(err);
       })
-      .on('reconnect attempt', onReconnectAttempt);
+      .on('reconnect attempt', () => {
+        this._subClosed = true;
+        onReconnectAttempt('sub');
+      });
 
     this._pushSocket
       .on('close', (err) => {
@@ -127,7 +144,10 @@ class BusClient extends EventEmitter {
         onClosed(err);
         onConnected(err);
       })
-      .on('reconnect attempt', onReconnectAttempt);
+      .on('reconnect attempt', () => {
+        this._pushClosed = true;
+        onReconnectAttempt('push');
+      });
 
     this._subSocket.on('message', (topic, msg) => {
       if (topic === 'gameover') {
@@ -137,34 +157,62 @@ class BusClient extends EventEmitter {
         return;
       }
 
-      if (topic === 'greathall::bus.commands.registry') {
-        this._commandsRegistry = msg.data.registry;
-        this._commandsRegistryTime = new Date().toISOString();
-        this.emit('commands.registry', null, {
-          token: msg.data.token,
-          time: this._commandsRegistryTime,
-        });
-        return;
-      }
+      if (topic.startsWith('greathall::')) {
+        if (topic === 'greathall::bus.commands.registry') {
+          this._commandsRegistry = msg.data.registry;
+          this._commandsRegistryTime = new Date().toISOString();
+          this.emit('commands.registry', null, {
+            token: msg.data.token,
+            time: this._commandsRegistryTime,
+          });
+          return;
+        }
 
-      if (topic === 'greathall::bus.token.changed') {
-        this.emit('token.changed');
-        return;
-      }
+        if (topic === 'greathall::bus.token.changed') {
+          this.emit('token.changed');
+          return;
+        }
 
-      if (this._autoconnect && topic === 'greathall::heartbeat') {
-        this._autoconnect = false;
-        autoConnectToken = xUtils.crypto.genToken();
-        this._subSocket.subscribe(autoConnectToken + '::autoconnect.finished');
-        this.command.send(
-          'autoconnect',
-          {
-            autoConnectToken,
-            nice: this._busConfig ? this._busConfig.nice : 0,
-          },
-          'greathall'
-        );
-        return;
+        if (
+          topic === 'greathall::bus.orcname.changed' &&
+          this._token === msg.data.token
+        ) {
+          this.emit(
+            'orcname.changed',
+            msg.data.oldOrcName,
+            msg.data.newOrcName
+          );
+          return;
+        }
+
+        if (topic === 'greathall::bus.reconnect') {
+          switch (msg.data.status) {
+            case 'attempt':
+              this.emit('reconnect attempt');
+              break;
+            case 'done':
+              this.emit('reconnect');
+              break;
+          }
+          return;
+        }
+
+        if (this._autoconnect && topic === 'greathall::heartbeat') {
+          this._autoconnect = false;
+          autoConnectToken = xUtils.crypto.genToken();
+          this._subSocket.subscribe(
+            autoConnectToken + '::autoconnect.finished'
+          );
+          this.command.send(
+            'autoconnect',
+            {
+              autoConnectToken,
+              nice: this._busConfig ? this._busConfig.nice : 0,
+            },
+            'greathall'
+          );
+          return;
+        }
       }
 
       if (
@@ -180,6 +228,10 @@ class BusClient extends EventEmitter {
         );
         this._eventsRegistry[escapeTopic].handler(msg); // FIXME: replace by a getter
         this.unregisterEvents('autoconnect.finished');
+        return;
+      }
+
+      if (!this._connected) {
         return;
       }
 
@@ -206,6 +258,10 @@ class BusClient extends EventEmitter {
     });
   }
 
+  destroyPushSocket() {
+    this._pushSocket.destroySockets();
+  }
+
   _registerAutoconnect(callback, err) {
     this.registerEvents('autoconnect.finished', (msg) => {
       const isNewOrcName = this._orcName !== msg.data.orcName;
@@ -216,9 +272,12 @@ class BusClient extends EventEmitter {
             `reconnecting to the server has provided a new token: ${this._token} -> ${msg.data.token}`
           );
           this.emit('token.changed');
-        } else {
-          xLog.warn(`resend all lines after reconnecting to the server`);
+        } else if (this._orcName && isNewOrcName) {
+          xLog.warn(
+            `reconnecting to the server has provided a new orcName: ${this._orcName} -> ${msg.data.orcName}`
+          );
           Router.resendLines();
+          this.emit('orcname.changed', this._orcName, msg.data.orcName);
         }
       }
 
@@ -314,10 +373,12 @@ class BusClient extends EventEmitter {
     this._subSocket.connect(backend, {
       port: parseInt(busConfig.notifierPort),
       host: busConfig.host,
+      timeout: busConfig.timeout
     });
     this._pushSocket.connect(backend, {
       port: parseInt(busConfig.commanderPort),
       host: busConfig.host,
+      timeout: busConfig.timeout
     });
   }
 
