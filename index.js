@@ -372,12 +372,14 @@ class BusClient extends EventEmitter {
     this._subSocket.connect(backend, {
       port: parseInt(busConfig.notifierPort),
       host: busConfig.host,
-      timeout: busConfig.timeout
+      unixSocketId: busConfig.unixSocketId,
+      timeout: busConfig.timeout,
     });
     this._pushSocket.connect(backend, {
       port: parseInt(busConfig.commanderPort),
       host: busConfig.host,
-      timeout: busConfig.timeout
+      unixSocketId: busConfig.unixSocketId,
+      timeout: busConfig.timeout,
     });
   }
 
