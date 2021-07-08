@@ -470,7 +470,9 @@ class BusClient extends EventEmitter {
 
   unregisterEvents(topic) {
     const escapeTopic = xUtils.regex.toXcraftRegExpStr(topic);
-    this._eventsRegistry[escapeTopic].unregister();
+    if (this._eventsRegistry[escapeTopic]) {
+      this._eventsRegistry[escapeTopic].unregister();
+    }
   }
 
   isServerSide() {
