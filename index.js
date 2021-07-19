@@ -369,17 +369,24 @@ class BusClient extends EventEmitter {
       busConfig = require('xcraft-core-etc')().load('xcraft-core-bus');
     }
 
+    const options = {
+      timeout: busConfig.timeout,
+    };
+    if (busConfig.caPath) {
+      options.caPath = busConfig.caPath;
+    }
+
     this._subSocket.connect(backend, {
       port: parseInt(busConfig.notifierPort),
       host: busConfig.host,
       unixSocketId: busConfig.unixSocketId,
-      timeout: busConfig.timeout,
+      ...options,
     });
     this._pushSocket.connect(backend, {
       port: parseInt(busConfig.commanderPort),
       host: busConfig.host,
       unixSocketId: busConfig.unixSocketId,
-      timeout: busConfig.timeout,
+      ...options,
     });
   }
 
