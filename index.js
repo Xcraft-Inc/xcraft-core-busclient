@@ -339,6 +339,11 @@ class BusClient extends EventEmitter {
    * @param {function(err)} callback - Callback.
    */
   connect(backend, busToken, callback) {
+    const fs = require('fs');
+    const path = require('path');
+    const xEtc = require('xcraft-core-etc')();
+    const {resourcesPath} = require('xcraft-core-host');
+
     xLog.verb('Connecting...');
 
     const unsubscribe = this._subscribeConnect((err) => {
@@ -366,7 +371,16 @@ class BusClient extends EventEmitter {
 
     let busConfig = this._busConfig;
     if (!busConfig) {
-      busConfig = require('xcraft-core-etc')().load('xcraft-core-bus');
+      busConfig = xEtc.load('xcraft-core-bus');
+    }
+
+    /* The TLS certificate is ignored in case of unix socket use */
+    if (!busConfig.unixSocketId && !busConfig.caPath) {
+      const resCaPath = path.join(resourcesPath, 'server-cert.pem');
+      if (fs.existsSync(resCaPath)) {
+        busConfig.caPath = resCaPath;
+        xEtc.saveRun('xcraft-core-busclient', busConfig);
+      }
     }
 
     const options = {

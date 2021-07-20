@@ -23,6 +23,7 @@
     "uuid": "^8.3.2",
     "xcraft-axon": "^2.1.0",
     "xcraft-core-bus": "^4.0.2",
+    "xcraft-core-host": "^2.3.0",
     "xcraft-core-etc": "^2.0.4",
     "xcraft-core-log": "^1.3.0",
     "xcraft-core-transport": "^3.0.0",
