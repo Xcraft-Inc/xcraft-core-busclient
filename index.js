@@ -91,7 +91,9 @@ class BusClient extends EventEmitter {
         return;
       }
 
-      xLog.verb('Attempt a reconnect');
+      xLog.warn(`Attempt a reconnect for ${from}`);
+
+      this._connected = false;
 
       if (from === 'push') {
         this._subSocket.destroySockets();
@@ -99,14 +101,13 @@ class BusClient extends EventEmitter {
         this._pushSocket.destroySockets();
       }
 
-      this._connected = false;
-      this._autoconnect = true;
-
       this.emit('reconnect attempt');
 
       this._registerAutoconnect(() => {
         this.emit('reconnect');
       });
+
+      this._autoconnect = true;
     };
 
     this._subSocket
