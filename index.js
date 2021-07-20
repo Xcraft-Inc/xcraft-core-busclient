@@ -343,7 +343,10 @@ class BusClient extends EventEmitter {
     const fs = require('fs');
     const path = require('path');
     const xEtc = require('xcraft-core-etc')();
-    const {resourcesPath} = require('xcraft-core-host');
+    const xHost = require('xcraft-core-host');
+
+    const {resourcesPath} = xHost;
+    const appArgs = xHost.appArgs();
 
     xLog.verb('Connecting...');
 
@@ -376,7 +379,7 @@ class BusClient extends EventEmitter {
     }
 
     /* The TLS certificate is ignored in case of unix socket use */
-    if (!busConfig.unixSocketId && !busConfig.caPath) {
+    if (appArgs.tls !== false && !busConfig.unixSocketId && !busConfig.caPath) {
       const resCaPath = path.join(resourcesPath, 'server-cert.pem');
       if (fs.existsSync(resCaPath)) {
         busConfig.caPath = resCaPath;
