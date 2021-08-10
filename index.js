@@ -484,7 +484,7 @@ class BusClient extends EventEmitter {
 
     const re = new RegExp(escapeTopic);
     const ids = extractIds(topic);
-    const id = ids.length > 1 ? ids[1] : ids[0];
+    const id = ids[ids.length - 1];
     this._eventsCache.set(id, escapeTopic, re);
     this._eventsRegistry[escapeTopic] = {
       topic: re,
