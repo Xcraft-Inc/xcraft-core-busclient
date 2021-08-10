@@ -379,7 +379,12 @@ class BusClient extends EventEmitter {
     }
 
     /* The TLS certificate is ignored in case of unix socket use */
-    if (appArgs.tls !== false && !busConfig.unixSocketId && !busConfig.caPath) {
+    if (
+      appArgs.tls !== false &&
+      !busConfig.noTLS &&
+      !busConfig.unixSocketId &&
+      !busConfig.caPath
+    ) {
       const resCaPath = path.join(resourcesPath, 'server-cert.pem');
       if (fs.existsSync(resCaPath)) {
         busConfig.caPath = resCaPath;
