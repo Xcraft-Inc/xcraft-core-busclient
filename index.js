@@ -209,6 +209,9 @@ class BusClient extends EventEmitter {
             {
               autoConnectToken,
               nice: this._busConfig ? this._busConfig.nice : 0,
+              noForwarding: this._busConfig
+                ? this._busConfig.noForwarding || false
+                : false,
             },
             'greathall'
           );
@@ -394,6 +397,7 @@ class BusClient extends EventEmitter {
 
     const options = {
       timeout: busConfig.timeout,
+      noForwarding: busConfig.noForwarding,
     };
     if (busConfig.caPath) {
       options.caPath = busConfig.caPath;
