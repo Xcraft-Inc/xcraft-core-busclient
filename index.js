@@ -159,6 +159,28 @@ class BusClient extends EventEmitter {
       }
 
       if (topic.startsWith('greathall::')) {
+        if (topic === 'greathall::heartbeat') {
+          if (this._autoconnect) {
+            this._autoconnect = false;
+            autoConnectToken = xUtils.crypto.genToken();
+            this._subSocket.subscribe(
+              autoConnectToken + '::autoconnect.finished'
+            );
+            this.command.send(
+              'autoconnect',
+              {
+                autoConnectToken,
+                nice: this._busConfig ? this._busConfig.nice : 0,
+                noForwarding: this._busConfig
+                  ? this._busConfig.noForwarding || false
+                  : false,
+              },
+              'greathall'
+            );
+          }
+          return;
+        }
+
         if (topic === 'greathall::bus.commands.registry') {
           this._commandsRegistry = msg.data.registry;
           this._commandsRegistryTime = new Date().toISOString();
@@ -195,26 +217,6 @@ class BusClient extends EventEmitter {
               this.emit('reconnect');
               break;
           }
-          return;
-        }
-
-        if (this._autoconnect && topic === 'greathall::heartbeat') {
-          this._autoconnect = false;
-          autoConnectToken = xUtils.crypto.genToken();
-          this._subSocket.subscribe(
-            autoConnectToken + '::autoconnect.finished'
-          );
-          this.command.send(
-            'autoconnect',
-            {
-              autoConnectToken,
-              nice: this._busConfig ? this._busConfig.nice : 0,
-              noForwarding: this._busConfig
-                ? this._busConfig.noForwarding || false
-                : false,
-            },
-            'greathall'
-          );
           return;
         }
       }
