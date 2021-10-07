@@ -221,6 +221,11 @@ class BusClient extends EventEmitter {
         }
       }
 
+      if (!msg) {
+        this._resp.log.warn(`undefined message received via ${topic}`);
+        return;
+      }
+
       if (
         !this._connected &&
         topic === autoConnectToken + '::autoconnect.finished'
