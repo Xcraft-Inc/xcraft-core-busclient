@@ -448,16 +448,24 @@ class BusClient extends EventEmitter {
   stop(callback) {
     xLog.verb(`Stopping for ${this._orcName || 'greathall'}...`);
 
-    const unsubscribe = this._subscribeClose((err) => {
-      unsubscribe();
-      if (callback) {
-        callback(err);
-      }
-    });
+    const isConnected = this._connected;
+
+    if (isConnected) {
+      const unsubscribe = this._subscribeClose((err) => {
+        unsubscribe();
+        if (callback) {
+          callback(err);
+        }
+      });
+    }
 
     this._connected = false;
     this._subSocket.stop();
     this._pushSocket.stop();
+
+    if (!isConnected && callback) {
+      callback();
+    }
   }
 
   /**
