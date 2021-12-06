@@ -91,6 +91,22 @@ class BusClient extends EventEmitter {
         return;
       }
 
+      /* Ignore reconnect attempts in case of internal Xcraft nodes
+       * (localhost hordes). If an internal node is dying (or dead)
+       * the system is unstable. It's better to kill everythings
+       * as soon as possible.
+       */
+      const fromSocket = this[`_${from}Socket`];
+      if (fromSocket && fromSocket.isLocalOnly) {
+        process.exitCode = 9;
+        setTimeout(() => process.exit(), 10000);
+        xLog.err('Exit the node, the socket is lost (max wait of 10s)');
+        if (globalBusClient) {
+          globalBusClient.command.send('shutdown');
+        }
+        return;
+      }
+
       xLog.warn(`Attempt a reconnect for ${from}`);
 
       this._connected = false;

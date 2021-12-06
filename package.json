@@ -25,7 +25,7 @@
     "xcraft-core-host": "^3.0.0",
     "xcraft-core-etc": "^3.0.0",
     "xcraft-core-log": "^2.0.0",
-    "xcraft-core-transport": "^4.0.0",
+    "xcraft-core-transport": "^4.2.0",
     "xcraft-core-utils": "^4.0.0"
   },
   "author": "Mathieu Schroeter & Samuel Loup",
