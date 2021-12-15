@@ -574,13 +574,13 @@ class BusClient extends EventEmitter {
   }
 }
 
-exports.newResponse = function (moduleName, orcName, routing) {
+exports.newResponse = function (moduleName, orcName, routing, dataContext) {
   let self = null;
   if (this instanceof BusClient) {
     self = this;
   }
 
-  return new Resp(self, moduleName, orcName, routing);
+  return new Resp(self, moduleName, orcName, routing, dataContext);
 };
 
 exports.initGlobal = function () {
