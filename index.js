@@ -402,6 +402,9 @@ class BusClient extends EventEmitter {
     let busConfig = this._busConfig;
     if (!busConfig) {
       busConfig = xEtc.load('xcraft-core-bus');
+    } else if (!busConfig.hasOwnProperty('clientKeepAlive')) {
+      const {clientKeepAlive} = xEtc.load('xcraft-core-bus');
+      busConfig.clientKeepAlive = clientKeepAlive;
     }
 
     /* The TLS certificate is ignored in case of unix socket use */
@@ -420,6 +423,10 @@ class BusClient extends EventEmitter {
 
     const options = {
       timeout: busConfig.timeout,
+      clientKeepAlive:
+        typeof busConfig.clientKeepAlive === 'string'
+          ? parseInt(busConfig.clientKeepAlive)
+          : busConfig.clientKeepAlive,
       noForwarding: busConfig.noForwarding,
     };
     if (busConfig.caPath) {
