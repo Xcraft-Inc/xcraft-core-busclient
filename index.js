@@ -30,6 +30,7 @@ class BusClient extends EventEmitter {
     this._eventsRegistry = {};
     this._commandsRegistry = {};
     this._commandsRegistryTime = 0;
+    this._commandsNames = {};
     this._eventsCache = new Cache();
 
     this._token = 'invalid';
@@ -199,7 +200,7 @@ class BusClient extends EventEmitter {
         }
 
         if (topic === 'greathall::bus.commands.registry') {
-          this._updateCommandsRegistry(msg);
+          this._updateCommandsRegistry(msg.data.registry, msg.data.token);
           return;
         }
 
@@ -281,11 +282,21 @@ class BusClient extends EventEmitter {
     });
   }
 
-  _updateCommandsRegistry(msg) {
-    this._commandsRegistry = msg.data.cmdRegistry;
+  _updateCommandsRegistry(registry, token) {
+    this._commandsRegistry = registry;
     this._commandsRegistryTime = new Date().toISOString();
+
+    this._commandsNames = Object.assign(
+      {},
+      ...Object.entries(this._commandsRegistry).map(([key, infos]) => {
+        let value =
+          (infos.questOptions && infos.questOptions.rankingPredictions) || true;
+        return {[key]: value};
+      })
+    );
+
     this.emit('commands.registry', null, {
-      token: msg.data.token,
+      token,
       time: this._commandsRegistryTime,
     });
   }
@@ -316,7 +327,7 @@ class BusClient extends EventEmitter {
       if (!this._orcName) {
         this._orcName = msg.data.orcName;
       }
-      this._updateCommandsRegistry(msg);
+      this._updateCommandsRegistry(msg.data.cmdRegistry, msg.data.token);
 
       xLog.info(this._orcName + ' is serving ' + this._token + ' Great Hall');
 
@@ -565,6 +576,10 @@ class BusClient extends EventEmitter {
 
   getCommandsRegistryTime() {
     return this._commandsRegistryTime;
+  }
+
+  getCommandsNames() {
+    return this._commandsNames;
   }
 
   isConnected() {
