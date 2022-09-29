@@ -198,12 +198,7 @@ class BusClient extends EventEmitter {
         }
 
         if (topic === 'greathall::bus.commands.registry') {
-          this._commandsRegistry = msg.data.registry;
-          this._commandsRegistryTime = new Date().toISOString();
-          this.emit('commands.registry', null, {
-            token: msg.data.token,
-            time: this._commandsRegistryTime,
-          });
+          this._updateCommandsRegistry(msg);
           return;
         }
 
@@ -285,6 +280,15 @@ class BusClient extends EventEmitter {
     });
   }
 
+  _updateCommandsRegistry(msg) {
+    this._commandsRegistry = msg.data.cmdRegistry;
+    this._commandsRegistryTime = new Date().toISOString();
+    this.emit('commands.registry', null, {
+      token: msg.data.token,
+      time: this._commandsRegistryTime,
+    });
+  }
+
   destroyPushSocket() {
     this._pushSocket.destroySockets();
   }
@@ -311,12 +315,7 @@ class BusClient extends EventEmitter {
       if (!this._orcName) {
         this._orcName = msg.data.orcName;
       }
-      this._commandsRegistry = msg.data.cmdRegistry;
-      this._commandsRegistryTime = new Date().toISOString();
-      this.emit('commands.registry', null, {
-        token: msg.data.token,
-        time: this._commandsRegistryTime,
-      });
+      this._updateCommandsRegistry(msg);
 
       xLog.info(this._orcName + ' is serving ' + this._token + ' Great Hall');
 
