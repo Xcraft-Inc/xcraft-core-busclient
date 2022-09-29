@@ -29,6 +29,7 @@ class BusClient extends EventEmitter {
 
     this._eventsRegistry = {};
     this._commandsRegistry = {};
+    this._commandsRegistryTime = 0;
     this._eventsCache = new Cache();
 
     this._token = 'invalid';
