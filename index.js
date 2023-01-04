@@ -533,28 +533,28 @@ class BusClient extends EventEmitter {
   }
 
   registerEvents(topic, handler) {
-    const escapeTopic = xUtils.regex.toXcraftRegExpStr(topic);
+    const str = topic.str || xUtils.regex.toXcraftRegExpStr(topic);
+    const ids = topic.ids || extractIds(topic);
+    const reg = topic.reg || new RegExp(str);
 
-    if (this._eventsRegistry[escapeTopic]) {
+    if (this._eventsRegistry[str]) {
       xLog.info(`${topic} already registered, unsub and sub again`);
       this.unregisterEvents(topic);
     }
 
-    const re = new RegExp(escapeTopic);
-    const ids = extractIds(topic);
     const id = ids[ids.length - 1];
-    this._eventsCache.set(id, escapeTopic, re);
-    this._eventsRegistry[escapeTopic] = {
-      topic: re,
+    this._eventsCache.set(id, str, reg);
+    this._eventsRegistry[str] = {
+      topic: reg,
       handler,
-      unregister: () => this._unregister(id, escapeTopic),
+      unregister: () => this._unregister(id, str),
     };
   }
 
   unregisterEvents(topic) {
-    const escapeTopic = xUtils.regex.toXcraftRegExpStr(topic);
-    if (this._eventsRegistry[escapeTopic]) {
-      this._eventsRegistry[escapeTopic].unregister();
+    const str = topic.str || xUtils.regex.toXcraftRegExpStr(topic);
+    if (this._eventsRegistry[str]) {
+      this._eventsRegistry[str].unregister();
     }
   }
 
