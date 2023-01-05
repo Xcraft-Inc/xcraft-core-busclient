@@ -1,0 +1,9 @@
+[
+  {
+    "Module": "xcraft-core-busclient",
+    "Version": "v5.2.1",
+    "Hash": "1c18c68",
+    "Dev": "master",
+    "Prod": "5.2"
+  }
+]
