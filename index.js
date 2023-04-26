@@ -99,7 +99,7 @@ class BusClient extends EventEmitter {
        * as soon as possible.
        */
       const fromSocket = this[`_${from}Socket`];
-      if (fromSocket && fromSocket.isLocalOnly) {
+      if (fromSocket && fromSocket.isLocalOnly && !this._busConfig?.passive) {
         process.exitCode = 9;
         setTimeout(() => process.exit(), 10000);
         xLog.err('Exit the node, the socket is lost (max wait of 10s)');
@@ -205,7 +205,7 @@ class BusClient extends EventEmitter {
         }
 
         if (topic === 'greathall::bus.token.changed') {
-          this.emit('token.changed');
+          this.emit('token.changed', msg.data.busConfig);
           return;
         }
 
@@ -216,7 +216,8 @@ class BusClient extends EventEmitter {
           this.emit(
             'orcname.changed',
             msg.data.oldOrcName,
-            msg.data.newOrcName
+            msg.data.newOrcName,
+            msg.data.busConfig
           );
           return;
         }
@@ -314,12 +315,17 @@ class BusClient extends EventEmitter {
           xLog.warn(
             `reconnecting to the server has provided a new token: ${this._token} -> ${msg.data.token}`
           );
-          this.emit('token.changed');
+          this.emit('token.changed', this._busConfig);
         } else if (this._orcName && isNewOrcName) {
           xLog.warn(
             `reconnecting to the server has provided a new orcName: ${this._orcName} -> ${msg.data.orcName}`
           );
-          this.emit('orcname.changed', this._orcName, msg.data.orcName);
+          this.emit(
+            'orcname.changed',
+            this._orcName,
+            msg.data.orcName,
+            this._busConfig
+          );
         }
       }
 
