@@ -380,7 +380,7 @@ class BusClient extends EventEmitter {
    *
    * @param {string} backend - Transport's backend (ee or axon).
    * @param {string} busToken - Server's token, or null for autoconnect.
-   * @param {function(err)} callback - Callback.
+   * @param {Function} callback - Callback.
    */
   connect(backend, busToken, callback) {
     const fs = require('fs');
@@ -467,7 +467,7 @@ class BusClient extends EventEmitter {
   /**
    * Close the connections on the buses.
    *
-   * @param {function(err)} callback - Callback.
+   * @param {Function} callback - Callback.
    */
   stop(callback) {
     xLog.verb(`Stopping for ${this._orcName || 'greathall'}...`);
@@ -500,7 +500,7 @@ class BusClient extends EventEmitter {
    *
    * @param {string} topic - Event's topic or command's name.
    * @param {string} which - The sender's identity (orcName).
-   * @return {Object} the new message.
+   * @returns {object} the new message.
    */
   newMessage(topic, which) {
     const id = uuidV4();
@@ -527,7 +527,7 @@ class BusClient extends EventEmitter {
    * It's especially useful in the case of the Horde when a command must be
    * forwarded to an other server.
    *
-   * @param {Object} msg - Xcraft message.
+   * @param {object} msg - Xcraft message.
    */
   patchMessage(msg) {
     msg.token = this.getToken();
