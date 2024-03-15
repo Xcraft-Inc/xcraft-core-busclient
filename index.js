@@ -447,7 +447,11 @@ class BusClient extends EventEmitter {
       noForwarding: busConfig.noForwarding,
     };
     if (busConfig.caPath) {
-      options.caPath = busConfig.caPath;
+      if (!path.isAbsolute(busConfig.caPath)) {
+        options.caPath = path.join(resourcesPath, busConfig.caPath);
+      } else {
+        options.caPath = busConfig.caPath;
+      }
     }
 
     this._subSocket.connect(backend, {
