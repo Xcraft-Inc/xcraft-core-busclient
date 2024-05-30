@@ -9,6 +9,8 @@ const {
 } = require('xcraft-core-transport');
 const {v4: uuidV4} = require('uuid');
 
+const fse = require('fs-extra');
+const path = require('node:path');
 const xLog = require('xcraft-core-log')(moduleName, null);
 const xUtils = require('xcraft-core-utils');
 
@@ -369,6 +371,21 @@ class BusClient extends EventEmitter {
     return this._onConnectSubscribers[key].unsubscribe;
   }
 
+  #tryToLoadClientKeys(xHost, hordeId) {
+    const keyPath = path.join(
+      xHost.realmsStorePath,
+      `${hordeId}@${xHost.variantId}-key.pem`
+    );
+    const certPath = path.join(
+      xHost.realmsStorePath,
+      `${hordeId}@${xHost.variantId}-cert.pem`
+    );
+
+    return fse.existsSync(keyPath) && fse.existsSync(certPath)
+      ? {keyPath, certPath}
+      : null;
+  }
+
   /**
    * Connect the client to the buses.
    *
@@ -446,13 +463,35 @@ class BusClient extends EventEmitter {
           : busConfig.clientKeepAlive,
       noForwarding: busConfig.noForwarding,
     };
-    if (busConfig.caPath) {
-      if (!path.isAbsolute(busConfig.caPath)) {
-        options.caPath = path.join(resourcesPath, busConfig.caPath);
+
+    if (
+      busConfig.gatekeeper &&
+      busConfig.hordeId &&
+      !busConfig.keyPath &&
+      !busConfig.certPath
+    ) {
+      const keys = this.#tryToLoadClientKeys(xHost, busConfig.hordeId);
+      if (keys) {
+        const {keyPath, certPath} = keys;
+        busConfig.keyPath = keyPath;
+        busConfig.certPath = certPath;
+        xEtc.saveRun('xcraft-core-busclient', busConfig);
       } else {
-        options.caPath = busConfig.caPath;
+        xLog.err(
+          `Missing client certificate for ${busConfig.hordeId}@${xHost.variantId}`
+        );
       }
     }
+
+    ['caPath', 'keyPath', 'certPath']
+      .filter((key) => busConfig[key])
+      .forEach((key) => {
+        if (!path.isAbsolute(busConfig[key])) {
+          options[key] = path.join(resourcesPath, busConfig[key]);
+        } else {
+          options[key] = busConfig[key];
+        }
+      });
 
     this._subSocket.connect(backend, {
       port: parseInt(busConfig.notifierPort),
