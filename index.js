@@ -20,6 +20,8 @@ const Resp = require('./lib/resp.js');
 let globalBusClient = null;
 
 class BusClient extends EventEmitter {
+  #lastErrorReason = null;
+
   constructor(busConfig, subscriptions) {
     super();
 
@@ -61,6 +63,10 @@ class BusClient extends EventEmitter {
     this._onConnectSubscribers = {};
 
     const onClosed = (err) => {
+      if (err && err?.code !== 'Z_BUF_ERROR') {
+        this.#lastErrorReason = err.code || err.message || err;
+      }
+
       if (!this._subClosed || !this._pushClosed) {
         return;
       }
@@ -283,6 +289,10 @@ class BusClient extends EventEmitter {
         );
       }
     });
+  }
+
+  get lastErrorReason() {
+    return this.#lastErrorReason;
   }
 
   _updateCommandsRegistry(registry, token) {
