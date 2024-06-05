@@ -496,7 +496,10 @@ class BusClient extends EventEmitter {
     ['caPath', 'keyPath', 'certPath']
       .filter((key) => busConfig[key])
       .forEach((key) => {
-        if (!path.isAbsolute(busConfig[key])) {
+        if (
+          !busConfig[key].startsWith('base64:') &&
+          !path.isAbsolute(busConfig[key])
+        ) {
           options[key] = path.join(resourcesPath, busConfig[key]);
         } else {
           options[key] = busConfig[key];
