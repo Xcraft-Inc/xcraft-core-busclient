@@ -19,6 +19,12 @@ const Resp = require('./lib/resp.js');
 
 let globalBusClient = null;
 
+const autoconnect = {
+  no: 0,
+  yes: 1,
+  wait: 2,
+};
+
 class BusClient extends EventEmitter {
   #lastErrorReason = null;
 
@@ -39,7 +45,7 @@ class BusClient extends EventEmitter {
 
     this._token = 'invalid';
     this._orcName = null;
-    this._autoconnect = false;
+    this._autoconnect = autoconnect.no;
     this._connected = false;
     this._subClosed = true;
     this._pushClosed = true;
@@ -133,7 +139,7 @@ class BusClient extends EventEmitter {
         this.emit('reconnect');
       });
 
-      this._autoconnect = true;
+      this._autoconnect = autoconnect.yes;
     };
 
     this._subSocket
@@ -186,8 +192,18 @@ class BusClient extends EventEmitter {
 
       if (topic.startsWith('greathall::')) {
         if (topic === 'greathall::heartbeat') {
-          if (this._autoconnect) {
-            this._autoconnect = false;
+          if (
+            this._autoconnect === autoconnect.wait &&
+            Date.now() - this._autoconnectDelay > 5000
+          ) {
+            /* Try a new autoconnect after 5 seconds */
+            this._autoconnect = autoconnect.yes;
+          }
+
+          if (this._autoconnect === autoconnect.yes) {
+            this._autoconnect = autoconnect.wait;
+            this._autoconnectDelay = Date.now();
+
             autoConnectToken = xUtils.crypto.genToken();
             this._subSocket.subscribe(
               autoConnectToken + '::autoconnect.finished'
@@ -261,6 +277,7 @@ class BusClient extends EventEmitter {
         );
         this._eventsRegistry[escapeTopic].handler(msg); // FIXME: replace by a getter
         this.unregisterEvents('autoconnect.finished');
+        this._autoconnect = autoconnect.no;
         return;
       }
 
@@ -432,7 +449,7 @@ class BusClient extends EventEmitter {
       if (!busToken) {
         /* Autoconnect is sent when the server is ready (heartbeat). */
         this._registerAutoconnect(callback, err);
-        this._autoconnect = true;
+        this._autoconnect = autoconnect.yes;
         return;
       }
 
