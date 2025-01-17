@@ -463,7 +463,9 @@ class BusClient extends EventEmitter {
     let busConfig = this._busConfig;
     if (!busConfig) {
       busConfig = xEtc.load('xcraft-core-bus');
-    } else if (!busConfig.hasOwnProperty('clientKeepAlive')) {
+    } else if (
+      !Object.prototype.hasOwnProperty.call(busConfig, 'clientKeepAlive')
+    ) {
       const {clientKeepAlive} = xEtc.load('xcraft-core-bus');
       busConfig.clientKeepAlive = clientKeepAlive;
     }
