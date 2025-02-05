@@ -93,6 +93,8 @@ class BusClient extends EventEmitter {
         return;
       }
 
+      this.#lastErrorReason = null;
+
       if (!err) {
         xLog.verb('Connected');
       }
