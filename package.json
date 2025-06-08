@@ -19,7 +19,7 @@
     "url": "git+https://github.com/Xcraft-Inc/xcraft-core-busclient.git"
   },
   "dependencies": {
-    "fs-extra": "^9.1.0",
+    "fs-extra": "^11.3.0",
     "gigawatts": "^4.0.1",
     "uuid": "^8.3.2",
     "xcraft-core-bus": "^5.0.0",
