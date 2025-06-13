@@ -429,13 +429,10 @@ class BusClient extends EventEmitter {
    * @param {Function} callback - Callback.
    */
   connect(backend, busToken, callback) {
-    const fs = require('fs');
-    const path = require('path');
+    const fse = require('fs-extra');
+    const path = require('node:path');
     const xEtc = require('xcraft-core-etc')();
-    const xHost = require('xcraft-core-host');
-
-    const {resourcesPath} = xHost;
-    const appArgs = xHost.appArgs();
+    const xHost = xEtc ? require('xcraft-core-host') : null;
 
     xLog.verb('Connecting...');
 
@@ -466,6 +463,7 @@ class BusClient extends EventEmitter {
     if (!busConfig) {
       busConfig = xEtc.load('xcraft-core-bus');
     } else if (
+      xEtc &&
       !Object.prototype.hasOwnProperty.call(busConfig, 'clientKeepAlive')
     ) {
       const {clientKeepAlive} = xEtc.load('xcraft-core-bus');
@@ -474,13 +472,15 @@ class BusClient extends EventEmitter {
 
     /* The TLS certificate is ignored in case of unix socket use */
     if (
-      appArgs.tls !== false &&
+      xHost &&
+      xHost.resourcesPath &&
+      xHost.appArgs().tls !== false &&
       !busConfig.noTLS &&
       !busConfig.unixSocketId &&
       !busConfig.caPath
     ) {
-      const resCaPath = path.join(resourcesPath, 'server-cert.pem');
-      if (fs.existsSync(resCaPath)) {
+      const resCaPath = path.join(xHost.resourcesPath, 'server-cert.pem');
+      if (fse.existsSync(resCaPath)) {
         busConfig.caPath = resCaPath;
         xEtc.saveRun('xcraft-core-busclient', busConfig);
       }
@@ -496,6 +496,7 @@ class BusClient extends EventEmitter {
     };
 
     if (
+      xHost &&
       busConfig.gatekeeper &&
       busConfig.hordeId &&
       !busConfig.keyPath &&
@@ -518,10 +519,12 @@ class BusClient extends EventEmitter {
       .filter((key) => busConfig[key])
       .forEach((key) => {
         if (
+          xHost &&
+          xHost.resourcesPath &&
           !busConfig[key].startsWith('base64:') &&
           !path.isAbsolute(busConfig[key])
         ) {
-          options[key] = path.join(resourcesPath, busConfig[key]);
+          options[key] = path.join(xHost.resourcesPath, busConfig[key]);
         } else {
           options[key] = busConfig[key];
         }
