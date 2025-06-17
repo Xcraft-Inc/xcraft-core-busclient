@@ -1,6 +1,6 @@
 {
   "name": "xcraft-core-busclient",
-  "version": "5.9.1",
+  "version": "5.11.0",
   "description": "Xcraft bus client",
   "main": "index.js",
   "engines": {
