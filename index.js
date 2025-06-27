@@ -80,7 +80,7 @@ class BusClient extends EventEmitter {
       this.emit('close');
 
       if (!err) {
-        xLog.verb(`bus stopped for ${this._orcName || 'greathall'}`);
+        xLog.verb(() => `bus stopped for ${this._orcName || 'greathall'}`);
       }
 
       Object.keys(this._onCloseSubscribers).forEach((key) =>
@@ -300,11 +300,12 @@ class BusClient extends EventEmitter {
       );
 
       if (handlers.length) {
-        xLog.verb(`notification received: ${topic} for ${orcName}`);
+        xLog.verb(() => `notification received: ${topic} for ${orcName}`);
         handlers.forEach((handler) => handler(msg));
       } else if (topic !== 'greathall::heartbeat') {
         xLog.info(
-          `event sent on ${topic} discarded (no subscriber, current orc: ${orcName})`
+          () =>
+            `event sent on ${topic} discarded (no subscriber, current orc: ${orcName})`
         );
       }
     });
@@ -366,7 +367,9 @@ class BusClient extends EventEmitter {
       }
       this._updateCommandsRegistry(msg.data.cmdRegistry, msg.data.token);
 
-      xLog.info(this._orcName + ' is serving ' + this._token + ' Great Hall');
+      xLog.info(
+        () => this._orcName + ' is serving ' + this._token + ' Great Hall'
+      );
 
       if (this._orcName && isNewOrcName) {
         this._subSocket.subscribe(this._orcName + '::*');
@@ -454,7 +457,7 @@ class BusClient extends EventEmitter {
 
       this._connected = true;
       this._token = busToken;
-      xLog.verb('Connected with token: ' + this._token);
+      xLog.verb(() => 'Connected with token: ' + this._token);
 
       callback();
     });
@@ -550,7 +553,7 @@ class BusClient extends EventEmitter {
    * @param {Function} callback - Callback.
    */
   stop(callback) {
-    xLog.verb(`Stopping for ${this._orcName || 'greathall'}...`);
+    xLog.verb(() => `Stopping for ${this._orcName || 'greathall'}...`);
 
     const isConnected = this._connected;
 
