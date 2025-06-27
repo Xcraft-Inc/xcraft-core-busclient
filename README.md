@@ -1,4 +1,4 @@
-# 📘 Documentation du module xcraft-core-busclient
+# 📘 xcraft-core-busclient
 
 ## Aperçu
 
